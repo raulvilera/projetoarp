@@ -134,21 +134,45 @@ app.delete('/api/actions/:id', (req, res) => {
   }
 });
 
-app.post('/api/responses', (req, res) => {
+// Google Sheets Configuration
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8rMPbaPm3NeEjt2-Rj3J-AznFGs18QUjzKZRkgTijMLXaawiWlrj7zS56PQGfAu0lTg/exec';
+
+app.post('/api/responses', async (req, res) => {
   const { funcao, setor, answers } = req.body;
   try {
-    const insert = db.prepare('INSERT INTO responses (funcao, setor, answers_json) VALUES (?, ?, ?)');
-    insert.run(funcao, setor, JSON.stringify(answers));
-    res.json({ success: true });
+    if (!APPS_SCRIPT_URL) {
+      // Fallback to SQLite if URL is not yet configured
+      const insert = db.prepare('INSERT INTO responses (funcao, setor, answers_json) VALUES (?, ?, ?)');
+      insert.run(funcao, setor, JSON.stringify(answers));
+      return res.json({ success: true, storage: 'sqlite' });
+    }
+
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ funcao, setor, answers }),
+    });
+
+    if (!response.ok) throw new Error('Erro ao salvar no Google Sheets');
+    res.json({ success: true, storage: 'sheets' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/api/dashboard/stats', (req, res) => {
+app.get('/api/dashboard/stats', async (req, res) => {
   try {
-    const responses = db.prepare('SELECT answers_json FROM responses').all() as { answers_json: string }[];
-    const allAnswers = responses.map(r => JSON.parse(r.answers_json));
+    let allAnswers: any[] = [];
+
+    if (APPS_SCRIPT_URL) {
+      const response = await fetch(APPS_SCRIPT_URL);
+      if (response.ok) {
+        const sheetsData = await response.json() as any[];
+        allAnswers = sheetsData.map(r => JSON.parse(r.answers_json));
+      }
+    } else {
+      const responses = db.prepare('SELECT answers_json FROM responses').all() as { answers_json: string }[];
+      allAnswers = responses.map(r => JSON.parse(r.answers_json));
+    }
 
     // Simple aggregation by section (first character of question ID)
     const stats: Record<string, { sum: number, count: number }> = {};
