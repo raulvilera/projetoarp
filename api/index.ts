@@ -13,13 +13,20 @@ app.post('/api/responses', async (req, res) => {
     try {
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({ funcao, setor, answers }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Erro ao salvar no Google Sheets:', errorText);
-            throw new Error(`Erro ao salvar no Google Sheets: ${response.status}`);
+            console.error('Erro na resposta do Google Sheets:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`Erro ao salvar no Google Sheets: ${response.status} ${response.statusText}`);
         }
 
         res.json({ success: true, storage: 'sheets' });
