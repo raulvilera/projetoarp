@@ -6,6 +6,7 @@ import IdentificationScreen from "@/components/questionnaire/IdentificationScree
 import SectionView from "@/components/questionnaire/SectionView";
 import CompletionScreen from "@/components/questionnaire/CompletionScreen";
 import { useToast } from "@/hooks/use-toast";
+import { useCompanyStore } from "@/hooks/useCompanyStore";
 
 type Phase = "welcome" | "identification" | "questionnaire" | "complete";
 
@@ -15,11 +16,18 @@ const Index = () => {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [funcao, setFuncao] = useState("");
   const [setor, setSetor] = useState("");
+  const [empresaId, setEmpresaId] = useState<string | undefined>();
   const { toast } = useToast();
+  const { addResponse } = useCompanyStore();
 
   const handleAnswer = useCallback((questionId: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }, []);
+
+  const handleStart = (selectedEmpresaId?: string) => {
+    setEmpresaId(selectedEmpresaId);
+    setPhase("identification");
+  };
 
   const handleNext = async () => {
     if (currentSection < sections.length - 1) {
@@ -29,14 +37,18 @@ const Index = () => {
       try {
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
 
-        const response = await fetch(APPS_SCRIPT_URL, {
+        // Save locally so company folder can display it
+        if (empresaId) {
+          addResponse({ empresaId, funcao, setor, answers });
+        }
+
+        await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors', // Google Apps Script requires no-cors or redirects handling
+          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ funcao, setor, answers }),
+          body: JSON.stringify({ funcao, setor, answers, empresaId }),
         });
 
-        // With no-cors, we can't check response.ok, but we assume success if no error is thrown
         toast({
           title: "✅ Respostas enviadas!",
           description: "Obrigado por participar da avaliação.",
@@ -64,13 +76,14 @@ const Index = () => {
     setCurrentSection(0);
     setFuncao("");
     setSetor("");
+    setEmpresaId(undefined);
     setPhase("welcome");
   };
 
   return (
     <AnimatePresence mode="wait">
       {phase === "welcome" && (
-        <WelcomeScreen key="welcome" onStart={() => setPhase("identification")} />
+        <WelcomeScreen key="welcome" onStart={handleStart} />
       )}
       {phase === "identification" && (
         <IdentificationScreen
