@@ -83,8 +83,8 @@ app.post('/api/subscription/webhook', async (req, res) => {
                     const expiresAt = new Date(now);
                     expiresAt.setMonth(expiresAt.getMonth() + plan.months);
 
-                    // Upsert na tabela subscriptions
-                    await supabase.from('subscriptions').upsert({
+                    // Upsert na tabela subscriptions_arp
+                    await supabase.from('subscriptions_arp').upsert({
                         user_id: userId,
                         plan_id: planId,
                         status: 'active',
@@ -112,7 +112,7 @@ app.get('/api/subscription/status', async (req, res) => {
     if (!userId) return res.status(400).json({ error: 'userId obrigatório.' });
 
     const { data, error } = await supabase
-        .from('subscriptions')
+        .from('subscriptions_arp')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();

@@ -12,8 +12,12 @@ const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!isLoading && (!hasSession || !isActive)) {
-            navigate("/planos");
+        if (!isLoading) {
+            if (!hasSession) {
+                navigate("/login");
+            } else if (!isActive) {
+                navigate("/planos");
+            }
         }
     }, [isActive, isLoading, hasSession, navigate]);
 

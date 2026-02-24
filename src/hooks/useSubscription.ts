@@ -23,7 +23,7 @@ export const useSubscription = () => {
             }
 
             const { data: sub, error } = await supabase
-                .from("subscriptions")
+                .from("subscriptions_arp")
                 .select("*")
                 .eq("user_id", session.user.id)
                 .eq("status", "active")

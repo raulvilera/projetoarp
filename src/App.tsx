@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import PricingPage from "./pages/PricingPage";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionGuard from "./components/SubscriptionGuard";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,9 @@ const App = () => (
               <CompanyFolder />
             </SubscriptionGuard>
           } />
+
+          {/* Rotas de autenticação */}
+          <Route path="/login" element={<Login />} />
 
           {/* Rotas públicas de assinatura */}
           <Route path="/planos" element={<PricingPage />} />
