@@ -91,9 +91,36 @@ const DashboardData = () => {
     const { data: stats, isLoading, error } = useQuery({
         queryKey: ["dashboard-stats"],
         queryFn: async () => {
-            const response = await fetch("/api/dashboard/stats");
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
+            const response = await fetch(APPS_SCRIPT_URL);
             if (!response.ok) throw new Error("Erro ao carregar estatísticas");
-            return response.json() as Promise<{ id: string; average: number }[]>;
+
+            const sheetsData = await response.json() as any[];
+
+            const allAnswers = sheetsData.map(r => {
+                try {
+                    return typeof r.answers_json === 'string' ? JSON.parse(r.answers_json) : r.answers_json;
+                } catch (e) {
+                    return {};
+                }
+            });
+
+            const statsMap: Record<string, { sum: number, count: number }> = {};
+            allAnswers.forEach(ans => {
+                Object.entries(ans || {}).forEach(([id, value]) => {
+                    const sectionId = id.split('.')[0];
+                    if (!statsMap[sectionId]) {
+                        statsMap[sectionId] = { sum: 0, count: 0 };
+                    }
+                    statsMap[sectionId].sum += (value as number);
+                    statsMap[sectionId].count += 1;
+                });
+            });
+
+            return Object.entries(statsMap).map(([id, data]) => ({
+                id,
+                average: Number((data.sum / data.count).toFixed(2))
+            }));
         },
     });
 

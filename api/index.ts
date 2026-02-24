@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 
 // Google Sheets Configuration
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_hAKp4eyIvtAb0yi9zoUMi2pfsczFvSfm2y5nqz5qCyYTah4Cbauqz7p7Su6qo22pLw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
 
 // API Routes
 app.post('/api/responses', async (req, res) => {

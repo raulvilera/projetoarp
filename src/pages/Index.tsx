@@ -27,14 +27,16 @@ const Index = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       try {
-        const response = await fetch('/api/responses', {
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
+
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors', // Google Apps Script requires no-cors or redirects handling
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ funcao, setor, answers }),
         });
 
-        if (!response.ok) throw new Error('Falha ao enviar respostas');
-
+        // With no-cors, we can't check response.ok, but we assume success if no error is thrown
         toast({
           title: "✅ Respostas enviadas!",
           description: "Obrigado por participar da avaliação.",
