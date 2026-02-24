@@ -13,7 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sections } from "@/data/questionnaire";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, ShieldAlert, Zap, TrendingUp, Users, Target, Lock, MessageSquare, Scale } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InfoIcon, ShieldAlert, Zap, TrendingUp, Users, Target, Lock, MessageSquare, Scale, PlusCircle, Building2 } from "lucide-react";
+import CompanyRegistration from "@/components/companies/CompanyRegistration";
 
 const getIcon = (title: string) => {
     switch (title) {
@@ -206,10 +208,42 @@ const Dashboard = () => {
                 <header className="flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
-                        <p className="text-muted-foreground">Dashboard Geral e Medidas a Serem Adotadas</p>
+                        <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>
                     </div>
                 </header>
-                <DashboardData />
+
+                <Tabs defaultValue="stats" className="w-full">
+                    <TabsList className="bg-white p-1 rounded-xl border mb-6">
+                        <TabsTrigger value="stats" className="rounded-lg gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Dashboard Geral
+                        </TabsTrigger>
+                        <TabsTrigger value="companies" className="rounded-lg gap-2">
+                            <Building2 className="h-4 w-4" />
+                            Cadastrar Empresa
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="stats">
+                        <DashboardData />
+                    </TabsContent>
+
+                    <TabsContent value="companies" className="flex justify-center pt-8">
+                        <CompanyRegistration
+                            onCancel={() => {
+                                // Just switch back to stats
+                                const trigger = document.querySelector('[value="stats"]') as HTMLButtonElement;
+                                trigger?.click();
+                            }}
+                            onSave={(company) => {
+                                console.log("Salvando empresa:", company);
+                                // In a real app, this would save to a DB
+                                const trigger = document.querySelector('[value="stats"]') as HTMLButtonElement;
+                                trigger?.click();
+                            }}
+                        />
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
