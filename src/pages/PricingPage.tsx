@@ -1,0 +1,216 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+    CheckCircle, Shield, BarChart3, Building2, Zap,
+    Crown, Calendar, Loader2, ArrowRight, Star
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const PLANS = [
+    {
+        id: "mensal",
+        name: "Mensal",
+        price: "R$ 350",
+        period: "/mês",
+        priceNum: 35000, // em centavos
+        description: "Ideal para consultorias e empresas que querem começar.",
+        highlight: false,
+        icon: <Zap className="h-6 w-6" />,
+        color: "from-blue-600 to-blue-800",
+        features: [
+            "Empresas ilimitadas",
+            "Funcionários ilimitados",
+            "Dashboard completo",
+            "Relatórios por empresa",
+            "Acesso ao questionário NR-1",
+            "Suporte por e-mail",
+        ],
+    },
+    {
+        id: "anual",
+        name: "Anual",
+        price: "R$ 3.000",
+        period: "/ano",
+        priceNum: 300000, // em centavos
+        description: "Economize R$ 1.200 em relação ao mensal. Melhor custo-benefício.",
+        highlight: true,
+        icon: <Crown className="h-6 w-6" />,
+        color: "from-violet-600 to-purple-800",
+        features: [
+            "Tudo do plano Mensal",
+            "Economia de R$ 1.200/ano",
+            "Prioridade no suporte",
+            "Relatórios avançados",
+            "Acesso antecipado a novidades",
+            "Certificado de avaliação",
+        ],
+    },
+];
+
+const PricingPage = () => {
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+    const { toast } = useToast();
+    const navigate = useNavigate();
+
+    const handleSubscribe = async (planId: string) => {
+        setLoadingPlan(planId);
+        try {
+            const response = await fetch("/api/subscription/create-preference", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ planId }),
+            });
+
+            if (!response.ok) throw new Error("Erro ao criar preferência de pagamento");
+
+            const data = await response.json();
+
+            if (data.init_point) {
+                window.location.href = data.init_point;
+            } else {
+                throw new Error("Link de pagamento não gerado");
+            }
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Erro ao processar pagamento",
+                description: "Não foi possível iniciar o checkout. Tente novamente.",
+            });
+        } finally {
+            setLoadingPlan(null);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-[#0B1221] flex flex-col items-center justify-center px-4 py-16">
+            {/* Header */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center mb-14"
+            >
+                <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
+                    <Shield className="h-4 w-4 text-blue-400" />
+                    <span className="text-blue-400 text-sm font-medium">Plataforma oficial NR-1</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+                    Escolha seu plano
+                </h1>
+                <p className="text-slate-400 text-lg max-w-xl mx-auto">
+                    Avaliação de Riscos Psicossociais conforme a NR-1. Diagnóstico completo, relatórios automáticos e recomendações de ação.
+                </p>
+                <p className="text-slate-500 text-sm mt-3 flex items-center justify-center gap-1">
+                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                    Mais de 50 empresas já avaliadas na plataforma
+                </p>
+            </motion.div>
+
+            {/* Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
+                {PLANS.map((plan, i) => (
+                    <motion.div
+                        key={plan.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.15 }}
+                        className={`relative rounded-[28px] p-[2px] ${plan.highlight
+                            ? "bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 shadow-2xl shadow-purple-500/30"
+                            : "bg-slate-800"
+                            }`}
+                    >
+                        {plan.highlight && (
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                                ⭐ MAIS POPULAR
+                            </div>
+                        )}
+
+                        <div className="bg-[#0F1A2E] rounded-[26px] p-8 h-full flex flex-col">
+                            {/* Ícone e nome */}
+                            <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br ${plan.color} text-white mb-5`}>
+                                {plan.icon}
+                            </div>
+
+                            <h2 className="text-white text-2xl font-bold mb-1">{plan.name}</h2>
+                            <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
+
+                            {/* Preço */}
+                            <div className="flex items-end gap-1 mb-8">
+                                <span className="text-4xl font-extrabold text-white">{plan.price}</span>
+                                <span className="text-slate-400 text-lg pb-1">{plan.period}</span>
+                            </div>
+
+                            {plan.id === "anual" && (
+                                <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2 mb-6 flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                    <span className="text-green-400 text-xs font-semibold">Economize R$ 1.200 vs. mensal</span>
+                                </div>
+                            )}
+
+                            {/* Features */}
+                            <ul className="space-y-3 flex-1 mb-8">
+                                {plan.features.map((feat) => (
+                                    <li key={feat} className="flex items-start gap-3 text-slate-300 text-sm">
+                                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                                        {feat}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            {/* Botão */}
+                            <button
+                                onClick={() => handleSubscribe(plan.id)}
+                                disabled={loadingPlan !== null}
+                                className={`w-full flex items-center justify-center gap-2 h-14 rounded-2xl font-bold text-white transition-all duration-200 ${plan.highlight
+                                    ? "bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90 shadow-lg shadow-purple-500/30"
+                                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:opacity-90 shadow-lg shadow-blue-500/20"
+                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                {loadingPlan === plan.id ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        Assinar agora
+                                        <ArrowRight className="h-4 w-4" />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Footer info */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-12 flex flex-col md:flex-row items-center gap-6 text-slate-500 text-sm"
+            >
+                <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Pagamento 100% seguro via Mercado Pago</span>
+                </div>
+                <div className="hidden md:block w-px h-4 bg-slate-700" />
+                <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Cancele quando quiser</span>
+                </div>
+                <div className="hidden md:block w-px h-4 bg-slate-700" />
+                <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>NR-1 compliant</span>
+                </div>
+            </motion.div>
+
+            <button
+                onClick={() => navigate(-1)}
+                className="mt-8 text-slate-600 hover:text-slate-400 text-sm transition-colors"
+            >
+                ← Voltar
+            </button>
+        </div>
+    );
+};
+
+export default PricingPage;

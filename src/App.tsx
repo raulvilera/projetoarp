@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CompanyFolder from "./pages/CompanyFolder";
 import NotFound from "./pages/NotFound";
+import PricingPage from "./pages/PricingPage";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionGuard from "./components/SubscriptionGuard";
 
 const queryClient = new QueryClient();
 
@@ -17,9 +20,31 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/empresa/:id" element={<CompanyFolder />} />
+          {/* Rota pública: questionário (requer assinatura - Opção B) */}
+          <Route path="/" element={
+            <SubscriptionGuard>
+              <Index />
+            </SubscriptionGuard>
+          } />
+
+          {/* Dashboard protegido */}
+          <Route path="/dashboard" element={
+            <SubscriptionGuard>
+              <Dashboard />
+            </SubscriptionGuard>
+          } />
+
+          {/* Pasta de empresa protegida */}
+          <Route path="/empresa/:id" element={
+            <SubscriptionGuard>
+              <CompanyFolder />
+            </SubscriptionGuard>
+          } />
+
+          {/* Rotas públicas de assinatura */}
+          <Route path="/planos" element={<PricingPage />} />
+          <Route path="/assinatura/sucesso" element={<SubscriptionSuccess />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
