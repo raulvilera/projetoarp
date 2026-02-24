@@ -8,6 +8,7 @@ export interface SubscriptionInfo {
     plan: "mensal" | "anual" | null;
     expiresAt: string | null;
     subscriptionId: string | null;
+    hasSession: boolean;
 }
 
 export const useSubscription = () => {
@@ -18,7 +19,7 @@ export const useSubscription = () => {
             const session = sessionData?.session;
 
             if (!session) {
-                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null };
+                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: false };
             }
 
             const { data: sub, error } = await supabase
@@ -29,12 +30,12 @@ export const useSubscription = () => {
                 .maybeSingle();
 
             if (error || !sub) {
-                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null };
+                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: true };
             }
 
             const isExpired = sub.ends_at && new Date(sub.ends_at) < new Date();
             if (isExpired) {
-                return { status: "inactive", plan: sub.plan_id, expiresAt: sub.ends_at, subscriptionId: sub.id };
+                return { status: "inactive", plan: sub.plan_id, expiresAt: sub.ends_at, subscriptionId: sub.id, hasSession: true };
             }
 
             return {
@@ -42,6 +43,7 @@ export const useSubscription = () => {
                 plan: sub.plan_id,
                 expiresAt: sub.ends_at,
                 subscriptionId: sub.id,
+                hasSession: true,
             };
         },
         staleTime: 5 * 60 * 1000, // 5 minutos
@@ -50,6 +52,7 @@ export const useSubscription = () => {
 
     return {
         isActive: data?.status === "active",
+        hasSession: data?.hasSession ?? false,
         plan: data?.plan ?? null,
         expiresAt: data?.expiresAt ?? null,
         subscriptionId: data?.subscriptionId ?? null,

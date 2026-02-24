@@ -20,12 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Rota pública: questionário (requer assinatura - Opção B) */}
-          <Route path="/" element={
-            <SubscriptionGuard>
-              <Index />
-            </SubscriptionGuard>
-          } />
+          {/* Rota pública: questionário (sem necessidade de assinatura) */}
+          <Route path="/" element={<Index />} />
 
           {/* Dashboard protegido */}
           <Route path="/dashboard" element={

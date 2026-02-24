@@ -8,14 +8,14 @@ interface SubscriptionGuardProps {
 }
 
 const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
-    const { isActive, isLoading } = useSubscription();
+    const { isActive, isLoading, hasSession } = useSubscription();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!isLoading && !isActive) {
+        if (!isLoading && (!hasSession || !isActive)) {
             navigate("/planos");
         }
-    }, [isActive, isLoading, navigate]);
+    }, [isActive, isLoading, hasSession, navigate]);
 
     if (isLoading) {
         return (
@@ -28,7 +28,7 @@ const SubscriptionGuard = ({ children }: SubscriptionGuardProps) => {
         );
     }
 
-    if (!isActive) return null;
+    if (!hasSession || !isActive) return null;
 
     return <>{children}</>;
 };
