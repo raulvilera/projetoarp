@@ -1,15 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Search, Building2 } from "lucide-react";
 
 interface CompanyRegistrationProps {
     onCancel: () => void;
     onSave?: () => void;
 }
+
+interface BrasilApiEmpresa {
+    cnpj: string;
+    razao_social: string;
+    municipio: string;
+    uf: string;
+}
+
+const formatCnpj = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 14);
+    return digits
+        .replace(/^(\d{2})(\d)/, "$1.$2")
+        .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/\.(\d{3})(\d)/, ".$1/$2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
+};
 
 const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => {
     const [nome, setNome] = useState("");
@@ -18,30 +34,101 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
     const [uf, setUf] = useState("");
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [sugestoes, setSugestoes] = useState<BrasilApiEmpresa[]>([]);
+    const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+    const [buscando, setBuscando] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
     const { toast } = useToast();
     const { addCompany } = useCompanyStore();
 
-    const formatCnpj = (value: string) => {
-        const digits = value.replace(/\D/g, "");
-        return digits
-            .replace(/^(\d{2})(\d)/, "$1.$2")
-            .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-            .replace(/\.(\d{3})(\d)/, ".$1/$2")
-            .replace(/(\d{4})(\d)/, "$1-$2")
-            .slice(0, 18);
+    // Fecha dropdown ao clicar fora
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setMostrarSugestoes(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Busca empresas pelo nome com debounce
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        const termo = nome.trim();
+        if (termo.length < 3) {
+            setSugestoes([]);
+            setMostrarSugestoes(false);
+            return;
+        }
+
+        debounceRef.current = setTimeout(async () => {
+            setBuscando(true);
+            try {
+                const encoded = encodeURIComponent(termo);
+                const response = await fetch(
+                    `https://brasilapi.com.br/api/cnpj/v1/search?company_name=${encoded}&limit=8`
+                );
+                if (response.ok) {
+                    const data: BrasilApiEmpresa[] = await response.json();
+                    setSugestoes(data);
+                    setMostrarSugestoes(data.length > 0);
+                } else {
+                    setSugestoes([]);
+                    setMostrarSugestoes(false);
+                }
+            } catch {
+                setSugestoes([]);
+                setMostrarSugestoes(false);
+            } finally {
+                setBuscando(false);
+            }
+        }, 600);
+    }, [nome]);
+
+    const selecionarEmpresa = async (empresa: BrasilApiEmpresa) => {
+        setMostrarSugestoes(false);
+        setNome(empresa.razao_social);
+        setCnpj(formatCnpj(empresa.cnpj));
+        setCidade(empresa.municipio || "");
+        setUf(empresa.uf || "");
+
+        // Se a sugestão já trouxe os dados completos, não precisa buscar novamente
+        if (!empresa.municipio || !empresa.uf) {
+            setLoading(true);
+            try {
+                const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${empresa.cnpj}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setCidade(data.municipio || "");
+                    setUf(data.uf || "");
+                }
+            } catch {
+                // mantém o que já veio
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        toast({
+            title: "✅ Empresa selecionada!",
+            description: "Dados preenchidos automaticamente.",
+        });
     };
 
+    // Fallback: ao digitar CNPJ manualmente no campo CNPJ
     const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value.replace(/\D/g, "");
-        if (raw.length <= 14) {
-            setCnpj(formatCnpj(raw));
-        }
+        if (raw.length <= 14) setCnpj(formatCnpj(raw));
     };
 
     useEffect(() => {
         const rawCnpj = cnpj.replace(/\D/g, "");
-        if (rawCnpj.length === 14) {
-            const fetchCnpjData = async () => {
+        if (rawCnpj.length === 14 && !nome) {
+            const fetchByCnpj = async () => {
                 setLoading(true);
                 try {
                     const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${rawCnpj}`);
@@ -50,39 +137,25 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
                         setNome(data.razao_social || "");
                         setCidade(data.municipio || "");
                         setUf(data.uf || "");
-                        toast({
-                            title: "✅ CNPJ encontrado!",
-                            description: "Dados preenchidos automaticamente.",
-                        });
+                        toast({ title: "✅ CNPJ encontrado!", description: "Dados preenchidos automaticamente." });
                     } else {
-                        toast({
-                            variant: "destructive",
-                            title: "CNPJ não encontrado",
-                            description: "Preencha os dados manualmente.",
-                        });
+                        toast({ variant: "destructive", title: "CNPJ não encontrado", description: "Preencha os dados manualmente." });
                     }
                 } catch {
-                    toast({
-                        variant: "destructive",
-                        title: "Erro de conexão",
-                        description: "Não foi possível consultar o CNPJ.",
-                    });
+                    toast({ variant: "destructive", title: "Erro de conexão", description: "Não foi possível consultar o CNPJ." });
                 } finally {
                     setLoading(false);
                 }
             };
-            fetchCnpjData();
+            fetchByCnpj();
         }
-    }, [cnpj, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cnpj]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!nome || !cnpj || !cidade || !uf) {
-            toast({
-                variant: "destructive",
-                title: "⚠️ Campos obrigatórios",
-                description: "Por favor, preencha todos os campos.",
-            });
+            toast({ variant: "destructive", title: "⚠️ Campos obrigatórios", description: "Por favor, preencha todos os campos." });
             return;
         }
 
@@ -90,18 +163,13 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
         addCompany({ nome, cnpj: rawCnpj, cidade, uf });
 
         setSaved(true);
-        toast({
-            title: "🏢 Empresa cadastrada!",
-            description: `${nome} foi salva com sucesso.`,
-        });
+        toast({ title: "🏢 Empresa cadastrada!", description: `${nome} foi salva com sucesso.` });
 
-        setTimeout(() => {
-            onSave?.();
-        }, 1500);
+        setTimeout(() => { onSave?.(); }, 1500);
     };
 
     return (
-        <div className="bg-[#0B1221] p-8 rounded-[32px] w-full max-w-lg border border-slate-800 shadow-2xl overflow-hidden relative">
+        <div className="bg-[#0B1221] p-8 rounded-[32px] w-full max-w-lg border border-slate-800 shadow-2xl overflow-visible relative">
             <h2 className="text-white text-3xl font-bold mb-8">Nova Empresa</h2>
 
             {saved ? (
@@ -112,32 +180,84 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2 space-y-2">
-                            <Label className="text-[#64748B] text-xs font-bold uppercase tracking-wider">NOME DA EMPRESA</Label>
+
+                    {/* Campo Nome da Empresa com autocomplete */}
+                    <div ref={dropdownRef} className="relative space-y-2">
+                        <Label className="text-[#64748B] text-xs font-bold uppercase tracking-wider">
+                            NOME DA EMPRESA
+                        </Label>
+                        <div className="relative">
                             <Input
-                                placeholder="Ex: Indústria ABC Ltda"
+                                placeholder="Digite o nome da empresa..."
                                 value={nome}
-                                onChange={(e) => setNome(e.target.value)}
-                                className="bg-[#161F30] border-none text-white h-14 rounded-2xl placeholder:text-[#334155]"
+                                onChange={(e) => {
+                                    setNome(e.target.value);
+                                    // Limpa os campos se o usuário editar o nome
+                                    setCnpj("");
+                                    setCidade("");
+                                    setUf("");
+                                }}
+                                onFocus={() => sugestoes.length > 0 && setMostrarSugestoes(true)}
+                                className="bg-[#161F30] border-none text-white h-14 rounded-2xl placeholder:text-[#334155] pr-12"
+                                autoComplete="off"
                             />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[#64748B] text-xs font-bold uppercase tracking-wider">CNPJ</Label>
-                            <div className="relative">
-                                <Input
-                                    placeholder="00.000.000/0001-00"
-                                    value={cnpj}
-                                    onChange={handleCnpjChange}
-                                    className="bg-[#161F30] border-none text-white h-14 rounded-2xl placeholder:text-[#334155]"
-                                />
-                                {loading && (
-                                    <Loader2 className="absolute right-3 top-4 h-6 w-6 text-blue-500 animate-spin" />
+                            <div className="absolute right-3 top-4 h-6 w-6 flex items-center justify-center">
+                                {buscando ? (
+                                    <Loader2 className="text-blue-500 animate-spin h-5 w-5" />
+                                ) : (
+                                    <Search className="text-[#334155] h-5 w-5" />
                                 )}
                             </div>
                         </div>
+
+                        {/* Dropdown de sugestões */}
+                        {mostrarSugestoes && sugestoes.length > 0 && (
+                            <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-[#161F30] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+                                {sugestoes.map((emp, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => selecionarEmpresa(emp)}
+                                        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[#1E293B] transition-colors text-left border-b border-slate-800 last:border-none"
+                                    >
+                                        <Building2 className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-white text-sm font-semibold leading-tight">{emp.razao_social}</p>
+                                            <p className="text-slate-400 text-xs mt-0.5">
+                                                CNPJ: {formatCnpj(emp.cnpj)}
+                                                {emp.municipio && ` • ${emp.municipio}/${emp.uf}`}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Mensagem quando não há sugestões mas está buscando */}
+                        {nome.trim().length >= 3 && !buscando && sugestoes.length === 0 && mostrarSugestoes === false && (
+                            <p className="text-xs text-slate-500 px-1">
+                                Nenhuma empresa encontrada. Preencha os campos manualmente.
+                            </p>
+                        )}
                     </div>
 
+                    {/* Linha CNPJ */}
+                    <div className="space-y-2">
+                        <Label className="text-[#64748B] text-xs font-bold uppercase tracking-wider">CNPJ</Label>
+                        <div className="relative">
+                            <Input
+                                placeholder="00.000.000/0001-00"
+                                value={cnpj}
+                                onChange={handleCnpjChange}
+                                className="bg-[#161F30] border-none text-white h-14 rounded-2xl placeholder:text-[#334155]"
+                            />
+                            {loading && (
+                                <Loader2 className="absolute right-3 top-4 h-6 w-6 text-blue-500 animate-spin" />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Linha Cidade + UF */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="md:col-span-3 space-y-2">
                             <Label className="text-[#64748B] text-xs font-bold uppercase tracking-wider">CIDADE</Label>
