@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 
 // Google Sheets Configuration
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8rMPbaPm3NeEjt2-Rj3J-AznFGs18QUjzKZRkgTijMLXaawiWlrj7zS56PQGfAu0lTg/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_hAKp4eyIvtAb0yi9zoUMi2pfsczFvSfm2y5nqz5qCyYTah4Cbauqz7p7Su6qo22pLw/exec';
 
 // API Routes
 app.post('/api/responses', async (req, res) => {
@@ -29,6 +29,8 @@ app.post('/api/responses', async (req, res) => {
             throw new Error(`Erro ao salvar no Google Sheets: ${response.status} ${response.statusText}`);
         }
 
+        const result = await response.json();
+        console.log('Resposta do Google Sheets:', result);
         res.json({ success: true, storage: 'sheets' });
     } catch (error: any) {
         console.error('Erro na rota /api/responses:', error);
