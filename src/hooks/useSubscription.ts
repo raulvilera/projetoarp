@@ -22,6 +22,18 @@ export const useSubscription = () => {
                 return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: false };
             }
 
+            // Bypass para o administrador/autor
+            const adminEmail = "raulvilera@gmail.com";
+            if (session.user.email === adminEmail) {
+                return {
+                    status: "active",
+                    plan: "anual", // Nome simbólico para acesso total
+                    expiresAt: null,
+                    subscriptionId: "admin-bypass",
+                    hasSession: true,
+                };
+            }
+
             const { data: sub, error } = await supabase
                 .from("subscriptions_arp")
                 .select("*")
