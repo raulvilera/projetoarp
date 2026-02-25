@@ -47,12 +47,12 @@ app.post('/api/subscription/create-preference', async (req, res) => {
                     },
                 ],
                 back_urls: {
-                    success: `${process.env.APP_URL || 'https://projetoarp.vercel.app'}/assinatura/sucesso`,
-                    failure: `${process.env.APP_URL || 'https://projetoarp.vercel.app'}/planos`,
-                    pending: `${process.env.APP_URL || 'https://projetoarp.vercel.app'}/planos`,
+                    success: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/assinatura/sucesso`,
+                    failure: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/planos`,
+                    pending: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/planos`,
                 },
                 auto_return: 'approved',
-                notification_url: `${process.env.APP_URL || 'https://projetoarp.vercel.app'}/api/subscription/webhook`,
+                notification_url: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/api/subscription/webhook`,
                 metadata: { plan_id: planId, user_id: userId || null },
             },
         });
