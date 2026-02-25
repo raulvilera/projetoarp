@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -6,6 +6,7 @@ import {
     Crown, Calendar, Loader2, ArrowRight, Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const PLANS = [
     {
@@ -50,16 +51,31 @@ const PLANS = [
 
 const PricingPage = () => {
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const { toast } = useToast();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session?.user?.id) {
+                setUserId(data.session.user.id);
+            } else {
+                navigate("/login");
+            }
+        });
+    }, [navigate]);
+
     const handleSubscribe = async (planId: string) => {
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
         setLoadingPlan(planId);
         try {
             const response = await fetch("/api/subscription/create-preference", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planId }),
+                body: JSON.stringify({ planId, userId }),
             });
 
             if (!response.ok) throw new Error("Erro ao criar preferência de pagamento");
