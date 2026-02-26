@@ -5,8 +5,6 @@ import { createClient } from '@supabase/supabase-js';
 const app = express();
 app.use(express.json());
 
-const router = express.Router();
-
 // ─── Clientes ────────────────────────────────────────────────────────────────
 const mp = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN || '',
@@ -25,7 +23,7 @@ const PLANS: Record<string, { title: string; price: number; months: number }> = 
 };
 
 // ─── CORS Middleware ─────────────────────────────────────────────────────────
-const corsMiddleware = (req: any, res: any, next: any) => {
+app.use((req, res, next) => {
     const allowed = [
         'https://digital-survey-craft.lovable.app',
         'https://drps-manager.vercel.app',
@@ -40,15 +38,37 @@ const corsMiddleware = (req: any, res: any, next: any) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
     if (req.method === 'OPTIONS') return res.sendStatus(204);
     next();
-};
+});
 
-app.use(corsMiddleware);
+// ─── Rotas Robustas (Suporta /api/ e /) ──────────────────────────────────────
 
-// ─── Rotas do Router ──────────────────────────────────────────────────────────
+// Rota de Health-check
+app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok', v: 4 }));
 
-router.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+// Rota de Respostas do Formulário (Lovable)
+app.post(['/api/responses', '/responses'], async (req, res) => {
+    const { empresa_nome, funcao, setor, answers } = req.body;
+    if (!empresa_nome || !funcao || !setor || !answers) {
+        return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+    }
+    try {
+        const { data: company } = await supabase.from('companies').select('id').ilike('nome', empresa_nome.trim()).maybeSingle();
+        const { error } = await supabase.from('survey_responses').insert({
+            company_id: company?.id ?? null,
+            empresa_nome: empresa_nome.trim(),
+            funcao: funcao.trim(),
+            setor: setor.trim(),
+            answers_json: answers,
+        });
+        if (error) return res.status(500).json({ error: error.message });
+        res.json({ success: true, storage: 'supabase' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-router.post('/subscription/create-preference', async (req, res) => {
+// Rotas de Assinatura (Mercado Pago)
+app.post(['/api/subscription/create-preference', '/subscription/create-preference'], async (req, res) => {
     const { planId, userId } = req.body;
     const plan = PLANS[planId];
     if (!plan) return res.status(400).json({ error: 'Plano inválido.' });
@@ -69,12 +89,11 @@ router.post('/subscription/create-preference', async (req, res) => {
         });
         res.json({ init_point: result.init_point, id: result.id });
     } catch (error: any) {
-        console.error('Erro ao criar preferência MP:', error);
-        res.status(500).json({ error: 'Falha ao criar preferência de pagamento.' });
+        res.status(500).json({ error: 'Falha ao criar preferência.' });
     }
 });
 
-router.post('/subscription/webhook', async (req, res) => {
+app.post(['/api/subscription/webhook', '/subscription/webhook'], async (req, res) => {
     const { type, data } = req.body;
     if (type === 'payment' && data?.id) {
         try {
@@ -94,12 +113,12 @@ router.post('/subscription/webhook', async (req, res) => {
                     }, { onConflict: 'user_id' });
                 }
             }
-        } catch (err) { console.error('Erro no webhook MP:', err); }
+        } catch (err) { console.error('Erro webhook:', err); }
     }
     res.sendStatus(200);
 });
 
-router.get('/subscription/status', async (req, res) => {
+app.get(['/api/subscription/status', '/subscription/status'], async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: 'userId obrigatório.' });
     const { data, error } = await supabase.from('subscriptions_arp').select('*').eq('user_id', userId).maybeSingle();
@@ -108,20 +127,8 @@ router.get('/subscription/status', async (req, res) => {
     res.json({ status: isExpired ? 'inactive' : data.status, plan: data.plan_id, expiresAt: data.ends_at });
 });
 
-router.post('/responses', async (req, res) => {
-    const { empresa_nome, funcao, setor, answers } = req.body;
-    if (!empresa_nome || !funcao || !setor || !answers) return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
-    try {
-        const { data: company } = await supabase.from('companies').select('id').ilike('nome', empresa_nome.trim()).maybeSingle();
-        const { error } = await supabase.from('survey_responses').insert({
-            company_id: company?.id ?? null, empresa_nome: empresa_nome.trim(), funcao: funcao.trim(), setor: setor.trim(), answers_json: answers,
-        });
-        if (error) return res.status(500).json({ error: error.message });
-        res.json({ success: true, storage: 'supabase' });
-    } catch (error: any) { res.status(500).json({ error: error.message }); }
-});
-
-router.get('/dashboard/stats', async (req, res) => {
+// Estatísticas do dashboard
+app.get(['/api/dashboard/stats', '/dashboard/stats'], async (req, res) => {
     try {
         const { data: rows, error } = await supabase.from('survey_responses').select('answers_json');
         if (error) throw new Error(error.message);
@@ -142,10 +149,6 @@ router.get('/dashboard/stats', async (req, res) => {
     } catch (error: any) { res.status(500).json({ error: error.message }); }
 });
 
-router.get('/companies', (req, res) => res.json([]));
-
-// Monta todas as rotas em /api/ e na raiz para máxima compatibilidade com rewrites da Vercel
-app.use('/api', router);
-app.use('/', router);
+app.get(['/api/companies', '/companies'], (req, res) => res.json([]));
 
 export default app;
