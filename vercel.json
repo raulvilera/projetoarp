@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/responses",
+            "destination": "/api/responses.ts"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/index.ts"
         },
