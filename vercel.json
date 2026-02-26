@@ -1,15 +1,16 @@
 {
+    "functions": {
+        "api/submit-survey.ts": {
+            "maxDuration": 10
+        }
+    },
     "rewrites": [
         {
-            "source": "/api/submit-survey",
-            "destination": "/api/submit-survey.ts"
-        },
-        {
-            "source": "/api/(.*)",
+            "source": "/api/((?!submit-survey).*)",
             "destination": "/api/index.ts"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/).*)",
             "destination": "/index.html"
         }
     ]
