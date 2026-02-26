@@ -6,7 +6,9 @@ import IdentificationScreen from "@/components/questionnaire/IdentificationScree
 import SectionView from "@/components/questionnaire/SectionView";
 import CompletionScreen from "@/components/questionnaire/CompletionScreen";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+
+// Endpoint da Vercel que insere no Supabase usando a service key (sem RLS)
+const API_URL = "https://drps-manager.vercel.app/api/responses";
 
 type Phase = "welcome" | "identification" | "questionnaire" | "complete";
 
@@ -24,27 +26,24 @@ const Index = () => {
         setAnswers((prev) => ({ ...prev, [questionId]: value }));
     }, []);
 
-    // Salva respostas no Supabase ao finalizar o questionário
-    const saveToSupabase = async () => {
+    const saveResponses = async () => {
         setIsSaving(true);
         try {
-            // Busca o ID da empresa pelo nome (case-insensitive)
-            const { data: companyData } = await supabase
-                .from("companies")
-                .select("id")
-                .ilike("nome", empresaNome.trim())
-                .maybeSingle();
-
-            const { error } = await supabase.from("survey_responses").insert({
-                company_id: companyData?.id ?? null,
-                empresa_nome: empresaNome.trim(),
-                funcao: funcao.trim(),
-                setor: setor.trim(),
-                answers_json: answers,
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    empresa_nome: empresaNome.trim(),
+                    funcao: funcao.trim(),
+                    setor: setor.trim(),
+                    answers,
+                }),
             });
 
-            if (error) {
-                console.error("Erro ao salvar respostas:", error);
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.error("Erro ao salvar:", data);
                 toast({
                     title: "⚠️ Erro ao salvar",
                     description: "Não foi possível registrar suas respostas. Tente novamente.",
@@ -52,7 +51,6 @@ const Index = () => {
                 });
                 return false;
             }
-
             return true;
         } catch (err) {
             console.error("Erro inesperado:", err);
@@ -67,8 +65,7 @@ const Index = () => {
             setCurrentSection((s) => s + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-            // Última seção: salvar no Supabase antes de mostrar conclusão
-            const saved = await saveToSupabase();
+            const saved = await saveResponses();
             if (saved) {
                 toast({
                     title: "✅ Respostas enviadas!",

@@ -5,18 +5,34 @@ import { createClient } from '@supabase/supabase-js';
 const app = express();
 app.use(express.json());
 
+// ─── CORS: permitir chamadas do formulário Lovable ───────────────────────────
+app.use((req, res, next) => {
+    const allowed = [
+        'https://digital-survey-craft.lovable.app',
+        'https://drps-manager.vercel.app',
+        'http://localhost:8080',
+        'http://localhost:5173',
+    ];
+    const origin = req.headers.origin as string;
+    if (allowed.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+});
+
 // ─── Clientes ────────────────────────────────────────────────────────────────
 const mp = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN || '',
 });
 
+// Supabase com service role key — bypassa RLS (servidor seguro)
 const supabase = createClient(
-    process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+    process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://vzszzdeqbrjrepbzeiqq.supabase.co',
     process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
-
-// Google Sheets Configuration
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
 
 // ─── Planos disponíveis ───────────────────────────────────────────────────────
 const PLANS: Record<string, { title: string; price: number; months: number }> = {
@@ -127,44 +143,62 @@ app.get('/api/subscription/status', async (req, res) => {
     });
 });
 
-// ─── Respostas do Questionário ────────────────────────────────────────────────
+// ─── Receber respostas do formulário (Lovable → Supabase) ────────────────────
+// Este endpoint é chamado pelo formulário Lovable usando a service key no servidor
+// Não requer autenticação do usuário — a segurança é feita pelo CORS
 app.post('/api/responses', async (req, res) => {
-    const { funcao, setor, answers } = req.body;
-    console.log('Recebendo resposta:', { funcao, setor });
+    const { empresa_nome, funcao, setor, answers } = req.body;
+    console.log('Recebendo resposta:', { empresa_nome, funcao, setor });
+
+    if (!empresa_nome || !funcao || !setor || !answers) {
+        return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+    }
+
     try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ funcao, setor, answers }),
+        // Busca o company_id pelo nome da empresa
+        const { data: company } = await supabase
+            .from('companies')
+            .select('id')
+            .ilike('nome', empresa_nome.trim())
+            .maybeSingle();
+
+        const { error } = await supabase.from('survey_responses').insert({
+            company_id: company?.id ?? null,
+            empresa_nome: empresa_nome.trim(),
+            funcao: funcao.trim(),
+            setor: setor.trim(),
+            answers_json: answers,
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erro ao salvar no Google Sheets: ${response.status} ${response.statusText} - ${errorText}`);
+        if (error) {
+            console.error('Erro Supabase /api/responses:', error);
+            return res.status(500).json({ error: error.message });
         }
 
-        const result = await response.json();
-        res.json({ success: true, storage: 'sheets' });
+        res.json({ success: true, storage: 'supabase' });
     } catch (error: any) {
         console.error('Erro na rota /api/responses:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
+// ─── Estatísticas do dashboard (agrega todas as respostas) ───────────────────
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        if (!response.ok) throw new Error(`Erro ao buscar do Google Sheets: ${response.status}`);
+        const { data: rows, error } = await supabase
+            .from('survey_responses')
+            .select('answers_json');
 
-        const sheetsData = await response.json() as any[];
+        if (error) throw new Error(error.message);
 
-        const allAnswers = sheetsData.map(r => {
-            try { return JSON.parse(r.answers_json); } catch (e) { return {}; }
+        const allAnswers = (rows ?? []).map(r => {
+            try { return typeof r.answers_json === 'string' ? JSON.parse(r.answers_json) : r.answers_json; }
+            catch { return {}; }
         });
 
         const stats: Record<string, { sum: number, count: number }> = {};
         allAnswers.forEach(ans => {
-            Object.entries(ans).forEach(([id, value]) => {
+            Object.entries(ans || {}).forEach(([id, value]) => {
                 const sectionId = id.split('.')[0];
                 if (!stats[sectionId]) stats[sectionId] = { sum: 0, count: 0 };
                 stats[sectionId].sum += (value as number);
@@ -172,12 +206,10 @@ app.get('/api/dashboard/stats', async (req, res) => {
             });
         });
 
-        const result = Object.entries(stats).map(([id, data]) => ({
+        res.json(Object.entries(stats).map(([id, data]) => ({
             id,
             average: Number((data.sum / data.count).toFixed(2))
-        }));
-
-        res.json(result);
+        })));
     } catch (error: any) {
         console.error('Erro na rota /api/dashboard/stats:', error);
         res.status(500).json({ error: error.message });
