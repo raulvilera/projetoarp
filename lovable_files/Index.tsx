@@ -7,8 +7,8 @@ import SectionView from "@/components/questionnaire/SectionView";
 import CompletionScreen from "@/components/questionnaire/CompletionScreen";
 import { useToast } from "@/hooks/use-toast";
 
-// Serverless Function nativa Vercel — usa service key no servidor (sem necessidade de anon sign-in)
-const API_URL = "https://drps-manager.vercel.app/api/submit-survey";
+// Endpoint da Vercel (Express) que insere no Supabase usando a service key (sem RLS)
+const API_URL = "https://drps-manager.vercel.app/api/responses";
 
 type Phase = "welcome" | "identification" | "questionnaire" | "complete";
 
@@ -26,7 +26,7 @@ const Index = () => {
         setAnswers((prev) => ({ ...prev, [questionId]: value }));
     }, []);
 
-    const saveResponses = async () => {
+    const saveToSupabase = async () => {
         setIsSaving(true);
         try {
             const res = await fetch(API_URL, {
@@ -51,6 +51,7 @@ const Index = () => {
                 });
                 return false;
             }
+
             return true;
         } catch (err) {
             console.error("Erro inesperado:", err);
@@ -65,7 +66,7 @@ const Index = () => {
             setCurrentSection((s) => s + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-            const saved = await saveResponses();
+            const saved = await saveToSupabase();
             if (saved) {
                 toast({
                     title: "✅ Respostas enviadas!",
