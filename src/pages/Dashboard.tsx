@@ -18,6 +18,7 @@ import {
     RefreshCw,
 } from "lucide-react";
 import CompanyRegistration from "@/components/companies/CompanyRegistration";
+import PremiumHUD from "@/components/ui/PremiumHUD";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
 import { supabase } from "@/lib/supabase";
 
@@ -237,14 +238,9 @@ const Dashboard = () => {
         <div className="min-h-screen bg-slate-50 p-6">
             <div className="max-w-7xl mx-auto space-y-8">
                 <header className="flex items-center gap-4">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="relative w-12 h-12 flex items-center justify-center flex-shrink-0"
-                    >
-                        <div className="absolute inset-0 border border-blue-500/30 rounded-full border-dashed animate-spin-slow" />
-                        <Building2 className="h-6 w-6 text-blue-600" />
-                    </motion.div>
+                    <div className="relative w-14 h-14 flex items-center justify-center flex-shrink-0 bg-slate-900 rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-500/10 overflow-hidden">
+                        <PremiumHUD size={120} className="scale-150" animateInternal={true} />
+                    </div>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
                         <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>

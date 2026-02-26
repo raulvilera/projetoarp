@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield, CheckCircle, Lock, ArrowRight, Building2, ChevronDown, Factory, Heart, Network, BarChart3 } from "lucide-react";
+import PremiumHUD from "@/components/ui/PremiumHUD";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
 import {
   DropdownMenu,
@@ -40,55 +41,30 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           transition={{ delay: 0.1, duration: 0.6 }}
           className="text-center mb-8"
         >
-          {/* Capa: Moldura de Engrenagem com Imagem Industrial e Efeito HUD */}
-          <div className="flex justify-center mb-10 overflow-hidden">
+          {/* HUD Premium de Alta Fidelidade (Holograma 3.0) */}
+          <div className="flex justify-center mb-10 overflow-hidden py-10 relative">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="relative w-64 h-64 flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1 }}
+              className="flex gap-20 min-w-max px-20 relative"
             >
-              {/* Anéis HUD Decorativos */}
+              {/* Movimento de Carrossel Horizontal (Esquerda -> Direita conforme solicitado) */}
               <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-full"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-4 border border-primary/20 rounded-full"
-              />
-
-              {/* Moldura de Engrenagem Animada */}
-              <motion.div
-                animate={{ rotate: 360 }}
+                animate={{ x: ["-50%", "0%"] }}
                 transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 text-primary/10"
+                className="flex gap-40"
               >
-                <svg viewBox="0 0 100 100" className="w-full h-full fill-current">
-                  <path d="M100 50c0-2.3-1.4-4.2-3.4-5.1l-1.9-8.4c1.8-1.5 2.7-3.9 2-6.2l-5.6-5.6c-2.3-.7-4.7.2-6.2 2l-8.4-1.9c-.9-2-2.8-3.4-5.1-3.4s-4.2 1.4-5.1 3.4l-8.4 1.9c-1.5-1.8-3.9-2.7-6.2-2l-5.6 5.6c-.7 2.3.2 4.7 2 6.2l-1.9 8.4c-2 .9-3.4 2.8-3.4 5.1s1.4 4.2 3.4 5.1l1.9 8.4c-1.8 1.5-2.7 3.9-2 6.2l5.6 5.6c2.3.7 4.7-.2 6.2-2l8.4 1.9c.9 2 2.8 3.4 5.1 3.4s4.2-1.4 5.1-3.4l8.4-1.9c1.5 1.8 3.9 2.7 6.2 2l5.6-5.6c.7-2.3-.2-4.7-2-6.2l1.9-8.4c2-.9 3.4-2.8 3.4-5.1zm-50 20c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20z" />
-                </svg>
+                {[1, 2, 3].map((_, i) => (
+                  <PremiumHUD key={i} size={280} className="flex-shrink-0" />
+                ))}
               </motion.div>
-
-              {/* Imagem de Capa com Efeito de Carrossel Suave */}
-              <div className="absolute inset-6 rounded-full overflow-hidden border-2 border-primary/30 shadow-[0_0_40px_rgba(0,163,255,0.4)] bg-slate-900">
-                <motion.div
-                  animate={{ x: ["-10%", "10%", "-10%"] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-[120%] h-full flex"
-                >
-                  <img
-                    src="/assets/cover_industry_gear.png"
-                    alt="Avaliação de Riscos Industriais"
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                </motion.div>
-              </div>
-
-              {/* Overlay de Scanline HUD */}
-              <div className="absolute inset-6 rounded-full overflow-hidden pointer-events-none opacity-20 bg-gradient-to-b from-transparent via-primary/20 to-transparent bg-[length:100%_4px] animate-scanline" />
             </motion.div>
+
+            {/* Ambient Overlays for depth */}
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_50%,rgba(15,23,42,0.8)_100%)] z-10" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
           </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-6">
