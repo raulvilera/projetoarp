@@ -15,48 +15,64 @@ export const useSubscription = () => {
     const { data, isLoading } = useQuery<SubscriptionInfo>({
         queryKey: ["subscription-status"],
         queryFn: async (): Promise<SubscriptionInfo> => {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const session = sessionData?.session;
+            try {
+                const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-            if (!session) {
-                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: false };
-            }
+                if (sessionError) {
+                    console.error("Error fetching session:", sessionError);
+                    throw sessionError;
+                }
 
-            // Bypass para o administrador/autor
-            const adminEmail = "raulvilera@gmail.com";
-            if (session.user.email === adminEmail) {
+                const session = sessionData?.session;
+
+                if (!session) {
+                    return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: false };
+                }
+
+                // Bypass para o administrador/autor
+                const adminEmail = "raulvilera@gmail.com";
+                if (session.user.email === adminEmail) {
+                    return {
+                        status: "active",
+                        plan: "anual", // Nome simbólico para acesso total
+                        expiresAt: null,
+                        subscriptionId: "admin-bypass",
+                        hasSession: true,
+                    };
+                }
+
+                const { data: sub, error } = await supabase
+                    .from("subscriptions_arp")
+                    .select("*")
+                    .eq("user_id", session.user.id)
+                    .eq("status", "active")
+                    .maybeSingle();
+
+                if (error) {
+                    console.error("Error fetching subscription:", error);
+                    return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: true };
+                }
+
+                if (!sub) {
+                    return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: true };
+                }
+
+                const isExpired = sub.ends_at && new Date(sub.ends_at) < new Date();
+                if (isExpired) {
+                    return { status: "inactive", plan: sub.plan_id, expiresAt: sub.ends_at, subscriptionId: sub.id, hasSession: true };
+                }
+
                 return {
                     status: "active",
-                    plan: "anual", // Nome simbólico para acesso total
-                    expiresAt: null,
-                    subscriptionId: "admin-bypass",
+                    plan: sub.plan_id,
+                    expiresAt: sub.ends_at,
+                    subscriptionId: sub.id,
                     hasSession: true,
                 };
+            } catch (err) {
+                console.error("Unexpected error in useSubscription:", err);
+                throw err;
             }
-
-            const { data: sub, error } = await supabase
-                .from("subscriptions_arp")
-                .select("*")
-                .eq("user_id", session.user.id)
-                .eq("status", "active")
-                .maybeSingle();
-
-            if (error || !sub) {
-                return { status: "inactive", plan: null, expiresAt: null, subscriptionId: null, hasSession: true };
-            }
-
-            const isExpired = sub.ends_at && new Date(sub.ends_at) < new Date();
-            if (isExpired) {
-                return { status: "inactive", plan: sub.plan_id, expiresAt: sub.ends_at, subscriptionId: sub.id, hasSession: true };
-            }
-
-            return {
-                status: "active",
-                plan: sub.plan_id,
-                expiresAt: sub.ends_at,
-                subscriptionId: sub.id,
-                hasSession: true,
-            };
         },
         staleTime: 5 * 60 * 1000, // 5 minutos
         refetchOnWindowFocus: true,
