@@ -1,0 +1,112 @@
+.splash-container {
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0a192f 0%, #020617 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+.splash-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1200px;
+}
+
+.hologram-element {
+    position: absolute;
+    width: 200px;
+    height: 280px;
+    background: rgba(100, 200, 255, 0.05);
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(0, 160, 255, 0.2), inset 0 0 15px rgba(0, 160, 255, 0.1);
+    color: #64d2ff;
+    transition: all 0.3s ease;
+}
+
+.hologram-element i {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 10px rgba(100, 210, 255, 0.8));
+}
+
+.hologram-element span {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.hologram-glow {
+    position: absolute;
+    bottom: -50px;
+    width: 300px;
+    height: 100px;
+    background: radial-gradient(ellipse at center, rgba(0, 160, 255, 0.3) 0%, transparent 70%);
+    filter: blur(20px);
+    transform: rotateX(80deg);
+}
+
+.loading-text {
+    margin-top: 40px;
+    color: #64d2ff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    letter-spacing: 4px;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.5);
+}
+
+.scanline {
+    width: 100%;
+    height: 100px;
+    z-index: 3;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(100, 210, 255, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline 6s linear infinite;
+}
+
+@keyframes scanline {
+    0% {
+        bottom: 100%;
+    }
+
+    100% {
+        bottom: -100px;
+    }
+}

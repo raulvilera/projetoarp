@@ -11,46 +11,64 @@ import PricingPage from "./pages/PricingPage";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionGuard from "./components/SubscriptionGuard";
 import Login from "./pages/Login";
+import SplashScreen from "./components/ui/SplashScreen";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Rota pública: questionário (sem necessidade de assinatura) */}
-          <Route path="/" element={<Index />} />
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
 
-          {/* Dashboard protegido */}
-          <Route path="/dashboard" element={
-            <SubscriptionGuard>
-              <Dashboard />
-            </SubscriptionGuard>
-          } />
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5500); // 5.5 segundos para apreciar a animação
+    return () => clearTimeout(timer);
+  }, []);
 
-          {/* Pasta de empresa protegida */}
-          <Route path="/empresa/:id" element={
-            <SubscriptionGuard>
-              <CompanyFolder />
-            </SubscriptionGuard>
-          } />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AnimatePresence>
+          {showSplash && <SplashScreen key="splash" />}
+        </AnimatePresence>
 
-          {/* Rotas de autenticação */}
-          <Route path="/login" element={<Login />} />
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Rota pública: questionário (sem necessidade de assinatura) */}
+            <Route path="/" element={<Index />} />
 
-          {/* Rotas públicas de assinatura */}
-          <Route path="/planos" element={<PricingPage />} />
-          <Route path="/assinatura/sucesso" element={<SubscriptionSuccess />} />
+            {/* Dashboard protegido */}
+            <Route path="/dashboard" element={
+              <SubscriptionGuard>
+                <Dashboard />
+              </SubscriptionGuard>
+            } />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+            {/* Pasta de empresa protegida */}
+            <Route path="/empresa/:id" element={
+              <SubscriptionGuard>
+                <CompanyFolder />
+              </SubscriptionGuard>
+            } />
+
+            {/* Rotas de autenticação */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Rotas públicas de assinatura */}
+            <Route path="/planos" element={<PricingPage />} />
+            <Route path="/assinatura/sucesso" element={<SubscriptionSuccess />} />
+
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
