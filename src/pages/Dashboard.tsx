@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -235,9 +236,19 @@ const Dashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50 p-6">
             <div className="max-w-7xl mx-auto space-y-8">
-                <header>
-                    <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
-                    <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>
+                <header className="flex items-center gap-4">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="relative w-12 h-12 flex items-center justify-center flex-shrink-0"
+                    >
+                        <div className="absolute inset-0 border border-blue-500/30 rounded-full border-dashed animate-spin-slow" />
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                    </motion.div>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
+                        <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>
+                    </div>
                 </header>
 
                 <Tabs defaultValue="stats" className="w-full">
