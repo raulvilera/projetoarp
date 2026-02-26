@@ -16,8 +16,9 @@ const SplashScreen: React.FC = () => {
 
     const elements = [
         { icon: <Factory />, label: 'Ambiente Laboral' },
-        { icon: <Shield />, label: 'Prevenção e Saúde' },
-        { icon: <Network />, label: 'Fatores Psicossociais' },
+        { icon: <div className="relative"><Shield className="absolute -left-2 top-0 opacity-50" /><Heart className="text-red-400" /></div>, label: 'Prevenção e Saúde' },
+        { icon: <Network />, label: 'Rede de Fatores' },
+        { icon: <BarChart3 />, label: 'Análise de Riscos' },
     ];
 
     return (
@@ -25,39 +26,29 @@ const SplashScreen: React.FC = () => {
             <div className="splash-overlay" />
             <div className="scanline" />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="carousel-container"
-            >
-                {elements.map((el, index) => {
-                    const angle = (index * 120 + rotation) % 360;
-                    return (
-                        <motion.div
-                            key={index}
-                            className="hologram-element"
-                            animate={{
-                                rotateY: angle,
-                                z: Math.cos((angle * Math.PI) / 180) * 400,
-                                x: Math.sin((angle * Math.PI) / 180) * 500,
-                                opacity: Math.cos((angle * Math.PI) / 180) > 0 ? 1 : 0.2,
-                                scale: Math.cos((angle * Math.PI) / 180) > 0 ? 1 : 0.7,
-                            }}
-                            transition={{
-                                duration: 2.5,
-                                ease: "easeInOut"
-                            }}
-                        >
+            <div className="carousel-track">
+                <motion.div
+                    className="flex gap-8"
+                    animate={{
+                        x: [0, -1000],
+                    }}
+                    transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                >
+                    {[...elements, ...elements].map((el, index) => (
+                        <div key={index} className="hologram-element min-w-[200px]">
                             <div className="flex flex-col items-center">
-                                <i className="text-cyan-400">{el.icon}</i>
+                                <div className="icon-wrapper text-cyan-400 mb-4">{el.icon}</div>
                                 <span>{el.label}</span>
                             </div>
-                        </motion.div>
-                    );
-                })}
+                        </div>
+                    ))}
+                </motion.div>
                 <div className="hologram-glow" />
-            </motion.div>
+            </div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
