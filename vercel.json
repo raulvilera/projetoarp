@@ -1,12 +1,28 @@
 {
     "rewrites": [
         {
-            "source": "/api/responses",
+            "source": "/api/subscription/(.*)",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/dashboard/(.*)",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/companies",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/health",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/api/submit-survey",
             "destination": "/api/responses.ts"
         },
         {
-            "source": "/api/(.*)",
-            "destination": "/api/index.ts"
+            "source": "/api/responses",
+            "destination": "/api/responses.ts"
         },
         {
             "source": "/(.*)",
