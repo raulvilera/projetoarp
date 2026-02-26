@@ -1,18 +1,10 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, CheckCircle, Lock, ArrowRight, Building2, ChevronDown, Factory, Heart, Network, BarChart3 } from "lucide-react";
+import { Shield, CheckCircle, Lock, ArrowRight } from "lucide-react";
 import PremiumHUD from "@/components/ui/PremiumHUD";
-import { useCompanyStore } from "@/hooks/useCompanyStore";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type WelcomeScreenProps = {
-  onStart: (empresaId?: string) => void;
+  onStart: () => void;
 };
 
 const features = [
@@ -22,11 +14,6 @@ const features = [
 ];
 
 const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
-  const { companies } = useCompanyStore();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>();
-
-  const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -133,51 +120,6 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           </p>
         </motion.div>
 
-        {/* Company selector — shown only when companies are registered */}
-        {companies.length > 0 && (
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.45, duration: 0.5 }}
-            className="mb-6"
-          >
-            <p className="text-sm text-muted-foreground mb-2 text-center">
-              Selecione sua empresa para que os dados sejam organizados corretamente:
-            </p>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full h-12 justify-between rounded-xl border-2 hover:border-primary transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    {selectedCompany ? selectedCompany.nome : "Selecionar empresa..."}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full min-w-[380px]">
-                {companies.map((c) => (
-                  <DropdownMenuItem
-                    key={c.id}
-                    onSelect={() => setSelectedCompanyId(c.id)}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
-                      {c.nome.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{c.nome}</p>
-                      <p className="text-xs text-muted-foreground">{c.cidade} — {c.uf}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </motion.div>
-        )}
-
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -202,7 +144,7 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           className="flex justify-center"
         >
           <Button
-            onClick={() => onStart(selectedCompanyId)}
+            onClick={() => onStart()}
             size="lg"
             className="hero-gradient text-primary-foreground px-8 py-6 text-base font-semibold rounded-xl gap-2 hover:opacity-90 transition-opacity"
           >
