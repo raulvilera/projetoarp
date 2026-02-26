@@ -76,6 +76,19 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
                     const data: BrasilApiEmpresa[] = await response.json();
                     setSugestoes(data);
                     setMostrarSugestoes(data.length > 0);
+
+                    // Lógica de Preenchimento Automático (Se houver apenas um ou match exato)
+                    if (data.length > 0) {
+                        const matchExato = data.find(emp =>
+                            emp.razao_social.toLowerCase() === termo.toLowerCase() ||
+                            emp.cnpj === termo.replace(/\D/g, "")
+                        );
+
+                        // Se encontrou um match exato, preenche os outros campos sem esperar clique
+                        if (matchExato && !cnpj) {
+                            selecionarEmpresa(matchExato);
+                        }
+                    }
                 } else {
                     setSugestoes([]);
                     setMostrarSugestoes(false);
@@ -86,17 +99,19 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
             } finally {
                 setBuscando(false);
             }
-        }, 600);
+        }, 800); // Aumentado um pouco o debounce para evitar chamadas excessivas
     }, [nome]);
 
     const selecionarEmpresa = async (empresa: BrasilApiEmpresa) => {
         setMostrarSugestoes(false);
         setNome(empresa.razao_social);
         setCnpj(formatCnpj(empresa.cnpj));
-        setCidade(empresa.municipio || "");
-        setUf(empresa.uf || "");
 
-        // Se a sugestão já trouxe os dados completos, não precisa buscar novamente
+        // Se já temos municipio e uf, preenchemos logo
+        if (empresa.municipio) setCidade(empresa.municipio);
+        if (empresa.uf) setUf(empresa.uf);
+
+        // Busca detalhada se faltar algo
         if (!empresa.municipio || !empresa.uf) {
             setLoading(true);
             try {
@@ -114,8 +129,8 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
         }
 
         toast({
-            title: "✅ Empresa selecionada!",
-            description: "Dados preenchidos automaticamente.",
+            title: "✅ Dados sincronizados!",
+            description: "Informações da empresa carregadas automaticamente.",
         });
     };
 
