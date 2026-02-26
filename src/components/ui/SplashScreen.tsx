@@ -15,10 +15,65 @@ const SplashScreen: React.FC = () => {
     }, []);
 
     const elements = [
-        { icon: <Factory />, label: 'Ambiente Laboral' },
-        { icon: <div className="relative"><Shield className="absolute -left-2 top-0 opacity-50" /><Heart className="text-red-400" /></div>, label: 'Prevenção e Saúde' },
-        { icon: <Network />, label: 'Rede de Fatores' },
-        { icon: <BarChart3 />, label: 'Análise de Riscos' },
+        {
+            icon: (
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                    className="relative"
+                >
+                    <Factory />
+                </motion.div>
+            ),
+            label: 'Ambiente Laboral'
+        },
+        {
+            icon: (
+                <div className="relative">
+                    <motion.div
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute inset-0 flex items-center justify-center"
+                    >
+                        <Shield className="text-cyan-500/30 scale-150" />
+                    </motion.div>
+                    <motion.div
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                    >
+                        <Heart className="text-red-500 relative z-10" />
+                    </motion.div>
+                </div>
+            ),
+            label: 'Prevenção e Saúde'
+        },
+        {
+            icon: (
+                <motion.div
+                    animate={{
+                        rotateZ: [0, 10, -10, 0],
+                        scale: [1, 1.05, 1]
+                    }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                    <Network />
+                </motion.div>
+            ),
+            label: 'Rede de Fatores'
+        },
+        {
+            icon: (
+                <div className="relative flex items-center justify-center">
+                    <motion.div
+                        animate={{ height: ["20%", "80%", "40%", "100%", "20%"] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="absolute bottom-0 w-full bg-cyan-500/10"
+                    />
+                    <BarChart3 className="relative z-10" />
+                </div>
+            ),
+            label: 'Análise de Riscos'
+        },
     ];
 
     return (
@@ -30,10 +85,10 @@ const SplashScreen: React.FC = () => {
                 <motion.div
                     className="flex gap-8"
                     animate={{
-                        x: [0, -1000],
+                        x: [-1000, 0],
                     }}
                     transition={{
-                        duration: 20,
+                        duration: 15,
                         repeat: Infinity,
                         ease: "linear"
                     }}

@@ -59,9 +59,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle, rgba(100, 210, 255, 0.1) 0%, transparent 70%);
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(100, 210, 255, 0.15) 0%, transparent 70%);
+}
+
+.icon-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 110%;
+    height: 110%;
+    border: 1px dashed rgba(100, 210, 255, 0.3);
+    border-radius: 50%;
+    animation: spin-hud 15s linear infinite;
+}
+
+.icon-wrapper::after {
+    content: '';
+    position: absolute;
+    width: 130%;
+    height: 130%;
+    border: 1px solid rgba(100, 210, 255, 0.1);
+    border-radius: 50%;
+}
+
+@keyframes spin-hud {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .icon-wrapper svg {
