@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, CheckCircle, Lock, ArrowRight, Building2, ChevronDown } from "lucide-react";
+import { Shield, CheckCircle, Lock, ArrowRight, Building2, ChevronDown, Factory, Heart, Network, BarChart3 } from "lucide-react";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
 import {
   DropdownMenu,
