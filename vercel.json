@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/submit-survey",
+            "destination": "/api/submit-survey.ts"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/index.ts"
         },

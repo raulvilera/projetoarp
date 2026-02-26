@@ -7,8 +7,8 @@ import SectionView from "@/components/questionnaire/SectionView";
 import CompletionScreen from "@/components/questionnaire/CompletionScreen";
 import { useToast } from "@/hooks/use-toast";
 
-// Endpoint da Vercel que insere no Supabase usando a service key (sem RLS)
-const API_URL = "https://drps-manager.vercel.app/api/responses";
+// Serverless Function nativa Vercel — usa service key no servidor (sem necessidade de anon sign-in)
+const API_URL = "https://drps-manager.vercel.app/api/submit-survey";
 
 type Phase = "welcome" | "identification" | "questionnaire" | "complete";
 
