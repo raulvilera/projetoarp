@@ -104,34 +104,34 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
 
     const selecionarEmpresa = async (empresa: BrasilApiEmpresa) => {
         setMostrarSugestoes(false);
-        setNome(empresa.razao_social);
+        const razao = empresa.razao_social || "";
+        setNome(razao);
         setCnpj(formatCnpj(empresa.cnpj));
 
-        // Se já temos municipio e uf, preenchemos logo
         if (empresa.municipio) setCidade(empresa.municipio);
         if (empresa.uf) setUf(empresa.uf);
 
-        // Busca detalhada se faltar algo
-        if (!empresa.municipio || !empresa.uf) {
-            setLoading(true);
-            try {
-                const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${empresa.cnpj}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setCidade(data.municipio || "");
-                    setUf(data.uf || "");
-                }
-            } catch {
-                // mantém o que já veio
-            } finally {
-                setLoading(false);
-            }
-        }
+        // Busca detalhada obrigatória para garantir todos os campos
+        setLoading(true);
+        try {
+            const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${empresa.cnpj}`);
+            if (res.ok) {
+                const data = await res.json();
+                // Prioriza os campos da busca detalhada que são mais precisos
+                if (data.razao_social) setNome(data.razao_social);
+                setCidade(data.municipio || empresa.municipio || "");
+                setUf(data.uf || empresa.uf || "");
 
-        toast({
-            title: "✅ Dados sincronizados!",
-            description: "Informações da empresa carregadas automaticamente.",
-        });
+                toast({
+                    title: "✅ Dados sincronizados!",
+                    description: "Informações da empresa carregadas da Receita Federal.",
+                });
+            }
+        } catch (error) {
+            console.error("Erro na busca detalhada:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Fallback: ao digitar CNPJ manualmente no campo CNPJ
@@ -142,29 +142,29 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
 
     useEffect(() => {
         const rawCnpj = cnpj.replace(/\D/g, "");
-        if (rawCnpj.length === 14 && !nome) {
+        // Só busca se tiver 14 dígitos e o nome ainda não estiver preenchido (ou se o usuário estiver digitando especificamente aqui)
+        if (rawCnpj.length === 14) {
             const fetchByCnpj = async () => {
                 setLoading(true);
                 try {
                     const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${rawCnpj}`);
                     if (response.ok) {
                         const data = await response.json();
-                        setNome(data.razao_social || "");
+                        setNome(data.razao_social || data.nome_fantasia || nome);
                         setCidade(data.municipio || "");
                         setUf(data.uf || "");
                         toast({ title: "✅ CNPJ encontrado!", description: "Dados preenchidos automaticamente." });
-                    } else {
-                        toast({ variant: "destructive", title: "CNPJ não encontrado", description: "Preencha os dados manualmente." });
+                    } else if (response.status === 404) {
+                        toast({ variant: "destructive", title: "CNPJ não encontrado", description: "Verifique os números ou preencha manualmente." });
                     }
-                } catch {
-                    toast({ variant: "destructive", title: "Erro de conexão", description: "Não foi possível consultar o CNPJ." });
+                } catch (err) {
+                    toast({ variant: "destructive", title: "Erro de consulta", description: "O serviço de busca está temporariamente indisponível." });
                 } finally {
                     setLoading(false);
                 }
             };
             fetchByCnpj();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cnpj]);
 
     const handleSubmit = async (e: React.FormEvent) => {
