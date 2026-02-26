@@ -37,17 +37,22 @@ const Index = () => {
       try {
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
 
-        // Save locally so company folder can display it
+        // Save locally/supabase so company folder can display it
         if (empresaId) {
-          addResponse({ empresaId, funcao, setor, answers });
+          await addResponse({ empresaId, funcao, setor, answers });
         }
 
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ funcao, setor, answers, empresaId }),
-        });
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ funcao, setor, answers, empresaId }),
+          });
+        } catch (scriptError) {
+          // Mode 'no-cors' might still throw or we might want to log it
+          console.error("Google Script submission error (expected with no-cors):", scriptError);
+        }
 
         toast({
           title: "✅ Respostas enviadas!",
@@ -55,6 +60,7 @@ const Index = () => {
         });
         setPhase("complete");
       } catch (error) {
+        console.error("Submission error:", error);
         toast({
           variant: "destructive",
           title: "❌ Erro ao enviar",

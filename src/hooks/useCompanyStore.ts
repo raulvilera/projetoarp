@@ -163,11 +163,52 @@ export const useCompanyStore = () => {
         }
     }, []);
 
+    const addResponse = useCallback(async (data: {
+        empresaId: string;
+        funcao: string;
+        setor: string;
+        answers: Record<string, number>;
+    }) => {
+        const company = companies.find(c => c.id === data.empresaId);
+        const empresaNome = company ? company.nome : "Empresa não identificada";
+
+        const { data: inserted, error } = await supabase
+            .from("survey_responses")
+            .insert({
+                company_id: data.empresaId,
+                empresa_nome: empresaNome,
+                funcao: data.funcao,
+                setor: data.setor,
+                answers_json: data.answers,
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Erro ao salvar resposta no Supabase:", error);
+            throw error;
+        }
+
+        const newResponse: CompanyResponse = {
+            id: inserted.id,
+            empresaId: inserted.company_id,
+            empresa_nome: inserted.empresa_nome,
+            funcao: inserted.funcao,
+            setor: inserted.setor,
+            answers: inserted.answers_json,
+            submittedAt: inserted.submitted_at,
+        };
+
+        setResponses((prev) => [newResponse, ...prev]);
+        return newResponse;
+    }, [companies]);
+
     return {
         companies,
         responses,
         isLoading,
         addCompany,
+        addResponse,
         getCompanyById,
         deleteCompany,
         getResponsesByCompany,
