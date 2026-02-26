@@ -40,7 +40,7 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           transition={{ delay: 0.1, duration: 0.6 }}
           className="text-center mb-8"
         >
-          {/* Nova Capa: Moldura de Engrenagem com Imagem Industrial e Efeito HUD */}
+          {/* Composição Holográfica Animada (Holograma 2.0) */}
           <div className="flex justify-center mb-10 overflow-hidden">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -48,46 +48,77 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
               transition={{ duration: 1, ease: "easeOut" }}
               className="relative w-64 h-64 flex items-center justify-center"
             >
-              {/* Anéis HUD Decorativos */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-full"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-4 border border-primary/20 rounded-full"
-              />
-
-              {/* Moldura de Engrenagem Animada */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 text-primary/10"
-              >
-                <svg viewBox="0 0 100 100" className="w-full h-full fill-current">
-                  <path d="M100 50c0-2.3-1.4-4.2-3.4-5.1l-1.9-8.4c1.8-1.5 2.7-3.9 2-6.2l-5.6-5.6c-2.3-.7-4.7.2-6.2 2l-8.4-1.9c-.9-2-2.8-3.4-5.1-3.4s-4.2 1.4-5.1 3.4l-8.4 1.9c-1.5-1.8-3.9-2.7-6.2-2l-5.6 5.6c-.7 2.3.2 4.7 2 6.2l-1.9 8.4c-2 .9-3.4 2.8-3.4 5.1s1.4 4.2 3.4 5.1l1.9 8.4c-1.8 1.5-2.7 3.9-2 6.2l5.6 5.6c2.3.7 4.7-.2 6.2-2l8.4 1.9c.9 2 2.8 3.4 5.1 3.4s4.2-1.4 5.1-3.4l8.4-1.9c1.5 1.8 3.9 2.7 6.2 2l5.6-5.6c.7-2.3-.2-4.7-2-6.2l1.9-8.4c2-.9 3.4-2.8 3.4-5.1zm-50 20c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20z" />
-                </svg>
-              </motion.div>
-
-              {/* Imagem de Capa com Efeito de Carrossel Suave */}
-              <div className="absolute inset-6 rounded-full overflow-hidden border-2 border-primary/30 shadow-[0_0_40px_rgba(0,163,255,0.4)] bg-slate-900">
+              {/* Carrossel de Ícones Animados */}
+              <div className="absolute inset-4 rounded-full overflow-hidden border-2 border-primary/30 shadow-[0_0_50px_rgba(0,163,255,0.4)] bg-slate-900/40 backdrop-blur-md">
                 <motion.div
-                  animate={{ x: ["-10%", "10%", "-10%"] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-[120%] h-full flex"
+                  animate={{ x: ["0%", "-75%"] }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="w-[400%] h-full flex items-center"
                 >
-                  <img
-                    src="/assets/cover_industry_gear.png"
-                    alt="Avaliação de Riscos Industriais"
-                    className="w-full h-full object-cover opacity-80"
-                  />
+                  {[
+                    {
+                      icon: (
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }}>
+                          <Factory size={48} className="text-blue-400" />
+                        </motion.div>
+                      ),
+                      label: "Ambiente"
+                    },
+                    {
+                      icon: (
+                        <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                          <Heart size={48} className="text-red-500" />
+                        </motion.div>
+                      ),
+                      label: "Saúde"
+                    },
+                    {
+                      icon: (
+                        <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                          <Network size={48} className="text-emerald-400" />
+                        </motion.div>
+                      ),
+                      label: "Rede"
+                    },
+                    {
+                      icon: (
+                        <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }}>
+                          <BarChart3 size={48} className="text-amber-400" />
+                        </motion.div>
+                      ),
+                      label: "Dados"
+                    }
+                  ].map((item, idx) => (
+                    <div key={idx} className="w-1/4 h-full flex flex-col items-center justify-center relative">
+                      {/* Anéis HUD Internos */}
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="absolute w-32 h-32 border border-blue-500/20 rounded-full border-dashed"
+                      />
+                      <div className="z-10 bg-slate-900/50 p-6 rounded-full border border-white/5 backdrop-blur-sm">
+                        {item.icon}
+                      </div>
+                      <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/60">{item.label}</span>
+                    </div>
+                  ))}
                 </motion.div>
               </div>
 
+              {/* Anéis HUD Externos de Alta Velocidade */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 border-2 border-primary/20 rounded-full border-t-primary/60 border-l-transparent border-r-transparent border-b-transparent"
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-2 border border-primary/10 rounded-full border-dashed"
+              />
+
               {/* Overlay de Scanline HUD */}
-              <div className="absolute inset-6 rounded-full overflow-hidden pointer-events-none opacity-20 bg-gradient-to-b from-transparent via-primary/20 to-transparent bg-[length:100%_4px] animate-scanline" />
+              <div className="absolute inset-4 rounded-full overflow-hidden pointer-events-none opacity-30 bg-gradient-to-b from-transparent via-primary/10 to-transparent bg-[length:100%_6px] animate-pulse" />
             </motion.div>
           </div>
 

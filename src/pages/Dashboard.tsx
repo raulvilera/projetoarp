@@ -237,14 +237,29 @@ const Dashboard = () => {
         <div className="min-h-screen bg-slate-50 p-6">
             <div className="max-w-7xl mx-auto space-y-8">
                 <header className="flex items-center gap-4">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="relative w-12 h-12 flex items-center justify-center flex-shrink-0"
-                    >
-                        <div className="absolute inset-0 border border-blue-500/30 rounded-full border-dashed animate-spin-slow" />
-                        <Building2 className="h-6 w-6 text-blue-600" />
-                    </motion.div>
+                    <div className="relative w-14 h-14 flex items-center justify-center flex-shrink-0 bg-slate-900 rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-500/10 overflow-hidden">
+                        <motion.div
+                            animate={{ y: ["0%", "-300%"] }}
+                            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                            className="absolute flex flex-col items-center"
+                        >
+                            {[
+                                <Factory key="f" className="h-6 w-6 text-blue-400 my-4" />,
+                                <Heart key="h" className="h-6 w-6 text-red-500 my-4" />,
+                                <Network key="n" className="h-6 w-6 text-emerald-400 my-4" />,
+                                <BarChart3 key="b" className="h-6 w-6 text-amber-400 my-4" />
+                            ].map((icon, idx) => (
+                                <motion.div key={idx} animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }}>
+                                    {icon}
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 border-2 border-blue-500/10 rounded-full border-dashed scale-75"
+                        />
+                    </div>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
                         <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>
