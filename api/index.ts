@@ -40,13 +40,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// ─── Rotas Robustas (Suporta /api/ e /) ──────────────────────────────────────
+// ─── Rotas ──────────────────────────────────────────────────────────────────
 
-// Rota de Health-check
-app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok', v: 4 }));
-
-// Rota de Respostas do Formulário (Lovable)
-app.post(['/api/responses', '/responses'], async (req, res) => {
+const handleResponses = async (req: any, res: any) => {
     const { empresa_nome, funcao, setor, answers } = req.body;
     if (!empresa_nome || !funcao || !setor || !answers) {
         return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
@@ -65,70 +61,12 @@ app.post(['/api/responses', '/responses'], async (req, res) => {
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 
-// Rotas de Assinatura (Mercado Pago)
-app.post(['/api/subscription/create-preference', '/subscription/create-preference'], async (req, res) => {
-    const { planId, userId } = req.body;
-    const plan = PLANS[planId];
-    if (!plan) return res.status(400).json({ error: 'Plano inválido.' });
-    try {
-        const preference = new Preference(mp);
-        const result = await preference.create({
-            body: {
-                items: [{ id: planId, title: plan.title, quantity: 1, unit_price: plan.price, currency_id: 'BRL' }],
-                back_urls: {
-                    success: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/assinatura/sucesso`,
-                    failure: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/planos`,
-                    pending: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/planos`,
-                },
-                auto_return: 'approved',
-                notification_url: `${process.env.APP_URL || 'https://drps-manager.vercel.app'}/api/subscription/webhook`,
-                metadata: { plan_id: planId, user_id: userId || null },
-            },
-        });
-        res.json({ init_point: result.init_point, id: result.id });
-    } catch (error: any) {
-        res.status(500).json({ error: 'Falha ao criar preferência.' });
-    }
-});
+app.post('/api/responses', handleResponses);
+app.post('/responses', handleResponses);
 
-app.post(['/api/subscription/webhook', '/subscription/webhook'], async (req, res) => {
-    const { type, data } = req.body;
-    if (type === 'payment' && data?.id) {
-        try {
-            const payment = new Payment(mp);
-            const paymentData = await payment.get({ id: data.id });
-            if (paymentData.status === 'approved') {
-                const planId = paymentData.metadata?.plan_id as string;
-                const userId = paymentData.metadata?.user_id as string;
-                const plan = PLANS[planId];
-                if (plan && userId) {
-                    const now = new Date();
-                    const expiresAt = new Date(now);
-                    expiresAt.setMonth(expiresAt.getMonth() + plan.months);
-                    await supabase.from('subscriptions_arp').upsert({
-                        user_id: userId, plan_id: planId, status: 'active', mp_payment_id: String(paymentData.id),
-                        starts_at: now.toISOString(), ends_at: expiresAt.toISOString(), updated_at: now.toISOString(),
-                    }, { onConflict: 'user_id' });
-                }
-            }
-        } catch (err) { console.error('Erro webhook:', err); }
-    }
-    res.sendStatus(200);
-});
-
-app.get(['/api/subscription/status', '/subscription/status'], async (req, res) => {
-    const userId = req.query.userId as string;
-    if (!userId) return res.status(400).json({ error: 'userId obrigatório.' });
-    const { data, error } = await supabase.from('subscriptions_arp').select('*').eq('user_id', userId).maybeSingle();
-    if (error || !data) return res.json({ status: 'inactive' });
-    const isExpired = data.ends_at && new Date(data.ends_at) < new Date();
-    res.json({ status: isExpired ? 'inactive' : data.status, plan: data.plan_id, expiresAt: data.ends_at });
-});
-
-// Estatísticas do dashboard
-app.get(['/api/dashboard/stats', '/dashboard/stats'], async (req, res) => {
+const handleStats = async (req: any, res: any) => {
     try {
         const { data: rows, error } = await supabase.from('survey_responses').select('answers_json');
         if (error) throw new Error(error.message);
@@ -147,8 +85,25 @@ app.get(['/api/dashboard/stats', '/dashboard/stats'], async (req, res) => {
         });
         res.json(Object.entries(stats).map(([id, data]) => ({ id, average: Number((data.sum / data.count).toFixed(2)) })));
     } catch (error: any) { res.status(500).json({ error: error.message }); }
-});
+};
 
+app.get('/api/dashboard/stats', handleStats);
+app.get('/dashboard/stats', handleStats);
+
+const handleStatus = async (req: any, res: any) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: 'userId obrigatório.' });
+    const { data, error } = await supabase.from('subscriptions_arp').select('*').eq('user_id', userId).maybeSingle();
+    if (error || !data) return res.json({ status: 'inactive' });
+    const isExpired = data.ends_at && new Date(data.ends_at) < new Date();
+    res.json({ status: isExpired ? 'inactive' : data.status, plan: data.plan_id, expiresAt: data.ends_at });
+};
+
+app.get('/api/subscription/status', handleStatus);
+app.get('/subscription/status', handleStatus);
+
+// Outras rotas (simplificadas)
+app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok', v: 5 }));
 app.get(['/api/companies', '/companies'], (req, res) => res.json([]));
 
 export default app;
