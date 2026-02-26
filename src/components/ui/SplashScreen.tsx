@@ -20,28 +20,28 @@ const SplashScreen: React.FC = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                    className="relative"
+                    className="relative flex items-center justify-center"
                 >
-                    <Factory />
+                    <Factory className="w-12 h-12" />
                 </motion.div>
             ),
             label: 'Ambiente Laboral'
         },
         {
             icon: (
-                <div className="relative">
+                <div className="relative flex items-center justify-center w-12 h-12">
                     <motion.div
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute inset-0 flex items-center justify-center"
                     >
-                        <Shield className="text-cyan-500/30 scale-150" />
+                        <Shield className="text-cyan-500 w-full h-full" />
                     </motion.div>
                     <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 0.8, repeat: Infinity }}
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        <Heart className="text-red-500 relative z-10" />
+                        <Heart className="text-red-500 w-8 h-8 relative z-10" />
                     </motion.div>
                 </div>
             ),
@@ -51,25 +51,26 @@ const SplashScreen: React.FC = () => {
             icon: (
                 <motion.div
                     animate={{
-                        rotateZ: [0, 10, -10, 0],
-                        scale: [1, 1.05, 1]
+                        rotate: [0, 5, -5, 0],
+                        scale: [1, 1.1, 1]
                     }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="flex items-center justify-center"
                 >
-                    <Network />
+                    <Network className="w-12 h-12" />
                 </motion.div>
             ),
             label: 'Rede de Fatores'
         },
         {
             icon: (
-                <div className="relative flex items-center justify-center">
+                <div className="relative flex items-center justify-center w-12 h-12 overflow-hidden">
                     <motion.div
-                        animate={{ height: ["20%", "80%", "40%", "100%", "20%"] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="absolute bottom-0 w-full bg-cyan-500/10"
+                        animate={{ y: ["100%", "0%", "100%"] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 bg-cyan-500/20"
                     />
-                    <BarChart3 className="relative z-10" />
+                    <BarChart3 className="w-10 h-10 relative z-10" />
                 </div>
             ),
             label: 'Análise de Riscos'
