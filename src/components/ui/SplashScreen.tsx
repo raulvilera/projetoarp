@@ -83,21 +83,22 @@ const SplashScreen: React.FC = () => {
 
             <div className="carousel-track">
                 <motion.div
-                    className="flex gap-8"
+                    className="flex min-w-max gap-12 px-12"
                     animate={{
-                        x: [-1000, 0],
+                        x: ["0%", "-50%"],
                     }}
                     transition={{
-                        duration: 15,
+                        duration: 30,
                         repeat: Infinity,
-                        ease: "linear"
+                        ease: "linear",
                     }}
                 >
-                    {[...elements, ...elements].map((el, index) => (
-                        <div key={index} className="hologram-element min-w-[200px]">
+                    {/* Triplicamos para garantir cobertura total em telas largas */}
+                    {[...elements, ...elements, ...elements, ...elements].map((el, index) => (
+                        <div key={`splash-item-${index}`} className="hologram-element min-w-[220px]">
                             <div className="flex flex-col items-center">
-                                <div className="icon-wrapper text-cyan-400 mb-4">{el.icon}</div>
-                                <span>{el.label}</span>
+                                <div className="icon-wrapper text-cyan-400 mb-6">{el.icon}</div>
+                                <span className="text-xs font-medium uppercase tracking-widest">{el.label}</span>
                             </div>
                         </div>
                     ))}

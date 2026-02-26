@@ -31,11 +31,12 @@
 .carousel-track {
     position: relative;
     width: 100vw;
-    height: 300px;
+    height: 350px;
     display: flex;
     align-items: center;
     overflow: hidden;
-    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 .hologram-element {
@@ -67,11 +68,12 @@
 .icon-wrapper::before {
     content: '';
     position: absolute;
-    width: 110%;
-    height: 110%;
-    border: 1px dashed rgba(100, 210, 255, 0.3);
+    width: 120%;
+    height: 120%;
+    border: 1px dashed rgba(100, 210, 255, 0.4);
     border-radius: 50%;
-    animation: spin-hud 15s linear infinite;
+    animation: spin-hud 12s linear infinite;
+    box-shadow: 0 0 15px rgba(100, 210, 255, 0.1);
 }
 
 .icon-wrapper::after {
