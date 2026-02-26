@@ -40,6 +40,36 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           transition={{ delay: 0.1, duration: 0.6 }}
           className="text-center mb-8"
         >
+          {/* Nova Capa: Moldura de Engrenagem com Imagem Industrial */}
+          <div className="flex justify-center mb-10">
+            <motion.div
+              initial={{ scale: 0.8, rotate: -20, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center"
+            >
+              {/* Moldura de Engrenagem Animada */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 text-primary/20"
+              >
+                <svg viewBox="0 0 100 100" className="w-full h-full fill-current">
+                  <path d="M100 50c0-2.3-1.4-4.2-3.4-5.1l-1.9-8.4c1.8-1.5 2.7-3.9 2-6.2l-5.6-5.6c-2.3-.7-4.7.2-6.2 2l-8.4-1.9c-.9-2-2.8-3.4-5.1-3.4s-4.2 1.4-5.1 3.4l-8.4 1.9c-1.5-1.8-3.9-2.7-6.2-2l-5.6 5.6c-.7 2.3.2 4.7 2 6.2l-1.9 8.4c-2 .9-3.4 2.8-3.4 5.1s1.4 4.2 3.4 5.1l1.9 8.4c-1.8 1.5-2.7 3.9-2 6.2l5.6 5.6c2.3.7 4.7-.2 6.2-2l8.4 1.9c.9 2 2.8 3.4 5.1 3.4s4.2-1.4 5.1-3.4l8.4-1.9c1.5 1.8 3.9 2.7 6.2 2l5.6-5.6c.7-2.3-.2-4.7-2-6.2l1.9-8.4c2-.9 3.4-2.8 3.4-5.1zm-50 20c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20z" />
+                </svg>
+              </motion.div>
+
+              {/* Imagem de Capa Industrial */}
+              <div className="absolute inset-4 rounded-full overflow-hidden border-2 border-primary/30 shadow-[0_0_30px_rgba(0,163,255,0.3)]">
+                <img
+                  src="/assets/cover_industry_gear.png"
+                  alt="Avaliação de Riscos Industriais"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </motion.div>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-6">
             <Shield className="w-4 h-4" />
             NR-01 — Avaliação de Riscos Psicossociais
