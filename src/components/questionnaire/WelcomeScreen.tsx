@@ -41,30 +41,41 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           transition={{ delay: 0.1, duration: 0.6 }}
           className="text-center mb-8"
         >
-          {/* HUD Premium de Alta Fidelidade (Holograma 3.0) */}
-          <div className="flex justify-center mb-10 overflow-hidden py-10 relative">
+          {/* Composição Industrial-Blueprint (Imagem solicitada + HUD dinâmico) */}
+          <div className="flex justify-center mb-10 overflow-hidden py-6 relative">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 1 }}
-              className="flex gap-20 min-w-max px-20 relative"
+              className="relative w-72 h-72 flex items-center justify-center p-4 border border-blue-500/10 rounded-full shadow-2xl shadow-blue-500/5 bg-white/40 backdrop-blur-sm"
             >
-              {/* Movimento de Carrossel Horizontal (Esquerda -> Direita conforme solicitado) */}
-              <motion.div
-                animate={{ x: ["-50%", "0%"] }}
-                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                className="flex gap-40"
-              >
-                {[1, 2, 3].map((_, i) => (
-                  <PremiumHUD key={i} size={280} className="flex-shrink-0" />
-                ))}
-              </motion.div>
-            </motion.div>
+              {/* Imagem Industrial de Fundo (A que o usuário quer) */}
+              <div className="absolute inset-2 rounded-full overflow-hidden border-2 border-primary/20 shadow-inner">
+                <motion.div
+                  animate={{ x: ["-5%", "5%", "-5%"] }}
+                  transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-[110%] h-full flex"
+                >
+                  <img
+                    src="/assets/cover_industry_gear.png"
+                    alt="Avaliação Industrial"
+                    className="w-full h-full object-cover opacity-90 saturate-[0.8]"
+                  />
+                </motion.div>
+              </div>
 
-            {/* Ambient Overlays for depth */}
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_50%,rgba(15,23,42,0.8)_100%)] z-10" />
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+              {/* HUB Clean de Alta Fidelidade Sobreposto */}
+              <div className="absolute inset-0 z-20">
+                <PremiumHUD size={288} className="translate-y-[-10px] scale-110" />
+              </div>
+
+              {/* Elementos Decorativos de Moldura */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 border border-t-primary/40 border-l-transparent border-r-transparent border-b-transparent rounded-full"
+              />
+            </motion.div>
           </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-6">
