@@ -14,9 +14,11 @@ import { useState } from "react";
 import {
     InfoIcon, ShieldAlert, Zap, TrendingUp, Users, Target, Lock,
     MessageSquare, Scale, Building2, ChevronRight, PlusCircle, MapPin, ClipboardList,
+    RefreshCw,
 } from "lucide-react";
 import CompanyRegistration from "@/components/companies/CompanyRegistration";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
+import { supabase } from "@/lib/supabase";
 
 const getIcon = (title: string) => {
     switch (title) {
@@ -54,18 +56,41 @@ const getRecommendation = (title: string, average: number) => {
 const COLORS = ["#f87171", "#fbbf24", "#60a5fa", "#34d399", "#a78bfa", "#f59e0b", "#f43f5e", "#6366f1", "#14b8a6"];
 
 const DashboardData = () => {
-    const { data: stats, isLoading, error } = useQuery({
+    const { data: stats, isLoading, error, refetch } = useQuery({
         queryKey: ["dashboard-stats"],
         queryFn: async () => {
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyyDmIGFoAymbihM3vb0XBJdJzipLp6Qtcpg99yoUwrMJjSNgjukTWe79OqwDdY8MuZA/exec';
-            const response = await fetch(APPS_SCRIPT_URL);
-            if (!response.ok) throw new Error("Erro ao carregar estatísticas");
-            const sheetsData = await response.json() as any[];
-            const allAnswers = sheetsData.map(r => { try { return typeof r.answers_json === 'string' ? JSON.parse(r.answers_json) : r.answers_json; } catch { return {}; } });
-            const statsMap: Record<string, { sum: number, count: number }> = {};
-            allAnswers.forEach(ans => { Object.entries(ans || {}).forEach(([id, value]) => { const sectionId = id.split('.')[0]; if (!statsMap[sectionId]) statsMap[sectionId] = { sum: 0, count: 0 }; statsMap[sectionId].sum += (value as number); statsMap[sectionId].count += 1; }); });
-            return Object.entries(statsMap).map(([id, data]) => ({ id, average: Number((data.sum / data.count).toFixed(2)) }));
+            const { data: rows, error: sbError } = await supabase
+                .from("survey_responses")
+                .select("answers_json");
+
+            if (sbError) throw new Error(sbError.message);
+
+            const allAnswers = (rows ?? []).map((r) => {
+                try {
+                    return typeof r.answers_json === "string"
+                        ? JSON.parse(r.answers_json)
+                        : r.answers_json;
+                } catch {
+                    return {};
+                }
+            });
+
+            const statsMap: Record<string, { sum: number; count: number }> = {};
+            allAnswers.forEach((ans) => {
+                Object.entries(ans || {}).forEach(([id, value]) => {
+                    const sectionId = id.split(".")[0];
+                    if (!statsMap[sectionId]) statsMap[sectionId] = { sum: 0, count: 0 };
+                    statsMap[sectionId].sum += value as number;
+                    statsMap[sectionId].count += 1;
+                });
+            });
+
+            return Object.entries(statsMap).map(([id, data]) => ({
+                id,
+                average: Number((data.sum / data.count).toFixed(2)),
+            }));
         },
+        staleTime: 2 * 60 * 1000, // 2 minutos
     });
 
     if (isLoading) return <Skeleton className="w-full h-[400px]" />;
@@ -79,8 +104,13 @@ const DashboardData = () => {
 
     return (
         <div className="space-y-6">
+            <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+                    <RefreshCw className="h-4 w-4" /> Atualizar dados
+                </Button>
+            </div>
             <Card>
-                <CardHeader><CardTitle>Médias de Riscos por Categoria</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Médias de Riscos por Categoria (Geral)</CardTitle></CardHeader>
                 <CardContent className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData} layout="vertical" margin={{ left: 100 }}>
@@ -120,6 +150,7 @@ const DashboardData = () => {
         </div>
     );
 };
+
 
 const CompanyListTab = () => {
     const navigate = useNavigate();

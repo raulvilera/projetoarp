@@ -149,23 +149,26 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
             };
             fetchByCnpj();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cnpj]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nome || !cnpj || !cidade || !uf) {
             toast({ variant: "destructive", title: "⚠️ Campos obrigatórios", description: "Por favor, preencha todos os campos." });
             return;
         }
 
+        setLoading(true);
         const rawCnpj = cnpj.replace(/\D/g, "");
-        addCompany({ nome, cnpj: rawCnpj, cidade, uf });
+        const result = await addCompany({ nome, cnpj: rawCnpj, cidade, uf });
+        setLoading(false);
 
-        setSaved(true);
-        toast({ title: "🏢 Empresa cadastrada!", description: `${nome} foi salva com sucesso.` });
-
-        setTimeout(() => { onSave?.(); }, 1500);
+        if (result) {
+            setSaved(true);
+            toast({ title: "🏢 Empresa cadastrada!", description: `${nome} foi salva com sucesso.` });
+            setTimeout(() => { onSave?.(); }, 1500);
+        }
     };
 
     return (
