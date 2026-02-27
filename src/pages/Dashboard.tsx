@@ -15,11 +15,12 @@ import { useState } from "react";
 import {
     InfoIcon, ShieldAlert, Zap, TrendingUp, Users, Target, Lock,
     MessageSquare, Scale, Building2, ChevronRight, PlusCircle, MapPin, ClipboardList,
-    RefreshCw,
+    RefreshCw, ArrowRight,
 } from "lucide-react";
 import CompanyRegistration from "@/components/companies/CompanyRegistration";
 import PremiumHUD from "@/components/ui/PremiumHUD";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/lib/supabase";
 
 const getIcon = (title: string) => {
@@ -233,6 +234,95 @@ const CompanyListTab = () => {
     );
 };
 
+const IntelligenceTab = () => {
+    const navigate = useNavigate();
+    const { plan, isActive } = useSubscription();
+
+    const reports = [
+        {
+            title: "Análise de Causa Raiz",
+            description: "Identificação profunda dos fatores geradores de riscos psicossociais (Módulos 5-7).",
+            level: "PRO",
+            icon: <Target className="h-6 w-6" />,
+            allowed: plan === "intermediario" || plan === "anual",
+        },
+        {
+            title: "Plano de Ação Executivo",
+            description: "Cronograma estruturado de intervenção para conformidade NR-01 (Módulo 8).",
+            level: "PRO",
+            icon: <ClipboardList className="h-6 w-6" />,
+            allowed: plan === "intermediario" || plan === "anual",
+        },
+        {
+            title: "Monitoramento de Desvios",
+            description: "Detecção precoce de variações críticas no clima organizacional (Módulo 9).",
+            level: "ENTERPRISE",
+            icon: <TrendingUp className="h-6 w-6" />,
+            allowed: plan === "anual",
+        },
+        {
+            title: "Expansão & Oportunidades",
+            description: "Análise estratégica de melhoria contínua e redução de custos (Módulo 10).",
+            level: "ENTERPRISE",
+            icon: <Zap className="h-6 w-6" />,
+            allowed: plan === "anual",
+        }
+    ];
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-xl font-bold">Inteligência Estratégica DRPS</h2>
+                    <p className="text-muted-foreground text-sm">Relatórios avançados baseados nos 10 módulos das Skills de Inteligência.</p>
+                </div>
+                <Badge variant="outline" className="w-fit border-blue-200 text-blue-700 bg-blue-50 py-1 px-3">
+                    Status: {isActive ? `Plano ${plan?.toUpperCase()}` : "Sem Assinatura Ativa"}
+                </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {reports.map((report, idx) => (
+                    <Card key={idx} className={`relative overflow-hidden transition-all duration-300 ${!report.allowed ? "opacity-75 grayscale-[0.5]" : "hover:border-blue-400 group cursor-pointer"}`}>
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <div className={`p-3 rounded-xl bg-gradient-to-br transition-colors shadow-sm ${report.allowed ? "from-blue-500 to-blue-700 text-white" : "from-slate-200 to-slate-300 text-slate-500"}`}>
+                                {report.icon}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-lg">{report.title}</CardTitle>
+                                    <Badge variant={report.level === "ENTERPRISE" ? "default" : "secondary"} className={report.level === "ENTERPRISE" ? "bg-amber-500 hover:bg-amber-600" : ""}>
+                                        {report.level}
+                                    </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                                    {report.description}
+                                </p>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {report.allowed ? (
+                                <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 group-hover:scale-[1.02] transition-transform">
+                                    Gerar Relatório Especializado <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-xl text-slate-600 text-sm font-medium">
+                                        <Lock className="h-4 w-4" /> Recursos disponíveis no Plano {report.level === "ENTERPRISE" ? "Corporativo" : "Profissional"}
+                                    </div>
+                                    <Button onClick={() => navigate("/planos")} variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50">
+                                        Fazer Upgrade para Liberar
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const Dashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50 p-6">
@@ -257,6 +347,10 @@ const Dashboard = () => {
                             <Building2 className="h-4 w-4" />
                             Empresas
                         </TabsTrigger>
+                        <TabsTrigger value="intelligence" className="rounded-lg gap-2">
+                            <Target className="h-4 w-4" />
+                            Inteligência Estratégica
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="stats">
@@ -265,6 +359,10 @@ const Dashboard = () => {
 
                     <TabsContent value="companies">
                         <CompanyListTab />
+                    </TabsContent>
+
+                    <TabsContent value="intelligence">
+                        <IntelligenceTab />
                     </TabsContent>
                 </Tabs>
             </div>
