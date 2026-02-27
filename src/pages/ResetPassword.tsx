@@ -56,19 +56,21 @@ const ResetPassword = () => {
 
             toast({
                 title: "✅ Senha alterada!",
-                description: "Sua senha foi redefinida com sucesso. Você já pode logar.",
+                description: "Sua senha foi redefinida com sucesso. Redirecionando para login...",
             });
 
-            // Logout para forçar login com a nova senha e limpar tokens de recuperação
-            await supabase.auth.signOut();
-            navigate("/login");
+            // Aguardar 2 segundos para o usuário ler a mensagem
+            setTimeout(async () => {
+                await supabase.auth.signOut();
+                navigate("/login", { replace: true });
+            }, 2000);
+
         } catch (error: any) {
             toast({
                 variant: "destructive",
                 title: "Erro ao redefinir",
                 description: error.message,
             });
-        } finally {
             setLoading(false);
         }
     };
