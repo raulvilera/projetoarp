@@ -110,6 +110,9 @@ const PricingPage = () => {
 
         setLoadingPlan(planId);
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const email = session?.user?.email;
+
             const response = await fetch("/api/subscription/create-preference", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -117,7 +120,8 @@ const PricingPage = () => {
                     planId: billingPeriod === "annually" && !planId.endsWith("_anual") && planId !== "anual"
                         ? `${planId}_anual`
                         : planId,
-                    userId: activeUserId
+                    userId: activeUserId,
+                    email: email // Enviar e-mail para o Mercado Pago
                 }),
             });
 

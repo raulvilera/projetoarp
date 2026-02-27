@@ -117,12 +117,15 @@ const handleCreatePreference = async (req: any, res: any) => {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId);
 
-        if (countError) throw countError;
+        const { data: { session } } = await supabase.auth.getSession();
+        const userEmail = req.body.email || session?.user?.email || 'contato@drps.com.br';
 
         const plan = PLANS[planId] || PLANS.basico;
         const amount = plan.price;
         const title = plan.title;
         const months = plan.months;
+
+        console.log(`[MP] Criando assinatura para ${userEmail}: ${title} (R$ ${amount})`);
 
         // 2. Criar Assinatura Recorrente (PreApproval) no Mercado Pago
         const preApproval = new PreApproval(mp);
@@ -130,22 +133,30 @@ const handleCreatePreference = async (req: any, res: any) => {
             body: {
                 reason: title,
                 external_reference: userId,
-                payer_email: req.body.email || 'test_user@test.com',
+                payer_email: userEmail,
                 auto_recurring: {
                     frequency: months,
                     frequency_type: 'months',
                     transaction_amount: amount,
                     currency_id: 'BRL',
                 },
-                back_url: `${req.headers.origin}/assinatura/sucesso`,
+                back_url: `${req.headers.origin || process.env.APP_URL}/assinatura/sucesso`,
                 status: 'pending',
             }
         });
 
+        if (!result.init_point) {
+            console.error('[MP] Erro: init_point não retornado', result);
+            throw new Error('Mercado Pago não retornou link de pagamento');
+        }
+
         res.json({ init_point: result.init_point, subscriptionId: result.id });
     } catch (error: any) {
-        console.error('Erro ao criar assinatura:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Erro detalhado ao criar assinatura:', error);
+        res.status(500).json({
+            error: error.message,
+            details: error.cause || error
+        });
     }
 };
 
