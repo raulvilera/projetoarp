@@ -11,40 +11,59 @@ import { supabase } from "@/lib/supabase";
 const PLANS = [
     {
         id: "basico",
-        name: "Plano Básico",
+        name: "Plano Básico (Basic)",
         price: "R$ 300",
         period: "/mês",
-        priceNum: 30000,
-        description: "Ideal para consultores com até 20 empresas cadastradas.",
-        highlight: true,
+        priceNum: 300.0,
+        description: "Diagnóstico inicial e mapa de riscos psicossociais.",
+        highlight: false,
         icon: <Zap className="h-6 w-6" />,
         color: "from-blue-600 to-blue-800",
         features: [
             "Até 20 empresas",
-            "Cobrança recorrente automática",
-            "Dashboard completo",
-            "Relatórios por empresa",
-            "Acesso ao questionário NR-1",
-            "Suporte prioritário",
+            "Módulos DRPS 1 a 4",
+            "Classificação & Diagnóstico",
+            "Pontuação e Mapa de Risco",
+            "Painel de Indicadores Geral",
+            "Suporte via Email",
         ],
     },
     {
         id: "intermediario",
-        name: "Plano Intermediário",
+        name: "Plano Profissional (Pro)",
         price: "R$ 650",
         period: "/mês",
-        priceNum: 65000,
-        description: "Para grandes volumes, acima de 20 empresas cadastradas.",
-        highlight: false,
-        icon: <Building2 className="h-6 w-6" />,
+        priceNum: 650.0,
+        description: "Gestão completa com governança e planos de ação.",
+        highlight: true,
+        icon: <Shield className="h-6 w-6" />,
         color: "from-violet-600 to-purple-800",
         features: [
             "Empresas ilimitadas",
-            "Cobrança recorrente automática",
-            "Tudo do plano Básico",
-            "Análise comparativa de dados",
-            "Exportação de dados em massa",
-            "Suporte 24/7",
+            "Módulos DRPS 1 a 8",
+            "Análise Técnica & Raiz",
+            "Governança & Conformidade",
+            "Geração de Plano de Ação",
+            "Relatórios Nível Executivo",
+        ],
+    },
+    {
+        id: "anual",
+        name: "Plano Corporativo (Enterprise)",
+        price: "R$ 3.000",
+        period: "/ano",
+        priceNum: 3000.0,
+        description: "Inteligência preditiva e monitoramento contínuo.",
+        highlight: false,
+        icon: <Building2 className="h-6 w-6" />,
+        color: "from-amber-500 to-orange-700",
+        features: [
+            "Acesso FULL Enterprise",
+            "Módulos DRPS 1 a 10",
+            "Monitoramento de Desvio",
+            "Detecção de Oportunidades",
+            "Suporte 24/7 Dedicado",
+            "Melhor custo-benefício",
         ],
     },
 ];
@@ -123,7 +142,7 @@ const PricingPage = () => {
             </motion.div>
 
             {/* Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
                 {PLANS.map((plan, i) => (
                     <motion.div
                         key={plan.id}
