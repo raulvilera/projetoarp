@@ -78,11 +78,10 @@ const PricingPage = () => {
         supabase.auth.getSession().then(({ data }) => {
             if (data.session?.user?.id) {
                 setUserId(data.session.user.id);
-            } else {
-                navigate("/login");
             }
+            // Não redirecionamos mais automaticamente; permitimos ver os planos.
         });
-    }, [navigate]);
+    }, []);
 
     const handleSubscribe = async (planId: string) => {
         if (!userId) {

@@ -141,16 +141,24 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.6 }}
-          className="flex justify-center"
+          className="flex flex-col items-center gap-4"
         >
           <Button
             onClick={() => onStart()}
             size="lg"
-            className="hero-gradient text-primary-foreground px-8 py-6 text-base font-semibold rounded-xl gap-2 hover:opacity-90 transition-opacity"
+            className="hero-gradient text-primary-foreground px-10 py-7 text-lg font-bold rounded-2xl gap-2 hover:opacity-90 shadow-2xl shadow-primary/20 transition-all active:scale-95 w-full md:w-auto"
           >
-            Iniciar Avaliação
+            Iniciar Avaliação Geral
             <ArrowRight className="w-5 h-5" />
           </Button>
+
+          <button
+            onClick={() => window.location.href = "/login"}
+            className="group flex items-center gap-2 text-slate-500 hover:text-blue-400 transition-colors py-2 px-4 rounded-xl hover:bg-blue-500/5"
+          >
+            <Lock className="w-4 h-4" />
+            <span className="text-sm font-semibold tracking-wide uppercase">Acesso ao Portal do Gestor</span>
+          </button>
         </motion.div>
       </div>
     </motion.div>
