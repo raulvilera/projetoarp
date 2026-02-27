@@ -11,6 +11,7 @@ import PricingPage from "./pages/PricingPage";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionGuard from "./components/SubscriptionGuard";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import SplashScreen from "./components/ui/SplashScreen";
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -57,6 +58,7 @@ const App = () => {
 
             {/* Rotas de autenticação */}
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Rotas públicas de assinatura */}
             <Route path="/planos" element={<PricingPage />} />

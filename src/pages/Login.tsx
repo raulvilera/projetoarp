@@ -13,6 +13,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
+    const [isResetting, setIsResetting] = useState(false); // Novo estado
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -28,7 +29,17 @@ const Login = () => {
         setLoading(true);
 
         try {
-            if (isSignUp) {
+            if (isResetting) {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                });
+                if (error) throw error;
+                toast({
+                    title: "✉️ E-mail enviado!",
+                    description: "Verifique sua caixa de entrada para redefinir sua senha.",
+                });
+                setIsResetting(false);
+            } else if (isSignUp) {
                 const { error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
                 toast({
@@ -103,12 +114,14 @@ const Login = () => {
                 <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-xl shadow-2xl rounded-[32px] overflow-hidden">
                     <CardHeader className="space-y-1 text-center pb-2">
                         <CardTitle className="text-2xl font-bold text-white">
-                            {isSignUp ? "Criar conta consultor" : "Portal do Gestor"}
+                            {isResetting ? "Recuperar acesso" : isSignUp ? "Criar conta consultor" : "Portal do Gestor"}
                         </CardTitle>
                         <CardDescription className="text-slate-400">
-                            {isSignUp
-                                ? "Cadastre-se para começar a gerenciar riscos"
-                                : "Entre para acessar seus dashboards de inteligência"}
+                            {isResetting
+                                ? "Enviaremos um link de redefinição para o seu e-mail"
+                                : isSignUp
+                                    ? "Cadastre-se para começar a gerenciar riscos"
+                                    : "Entre para acessar seus dashboards de inteligência"}
                         </CardDescription>
                     </CardHeader>
 
@@ -128,20 +141,31 @@ const Login = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-slate-300 text-xs font-medium ml-1">Senha de acesso</Label>
-                                <div className="relative group">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
-                                    <Input
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        className="bg-slate-950/50 border-slate-800 pl-10 h-12 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 rounded-2xl transition-all"
-                                    />
+                            {!isResetting && (
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center ml-1">
+                                        <Label className="text-slate-300 text-xs font-medium">Senha de acesso</Label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsResetting(true)}
+                                            className="text-[10px] text-blue-400 hover:text-blue-300 uppercase tracking-wider font-bold"
+                                        >
+                                            Esqueci a senha
+                                        </button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                                        <Input
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            required={!isResetting}
+                                            className="bg-slate-950/50 border-slate-800 pl-10 h-12 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 rounded-2xl transition-all"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </CardContent>
 
                         <CardFooter className="flex flex-col gap-4 pb-8">
@@ -154,20 +178,30 @@ const Login = () => {
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : (
                                     <span className="flex items-center gap-2">
-                                        {isSignUp ? "Solicitar Acesso" : "Conectar agora"}
+                                        {isResetting ? "Enviar link de recuperação" : isSignUp ? "Solicitar Acesso" : "Conectar agora"}
                                         <Zap className="h-4 w-4 fill-white" />
                                     </span>
                                 )}
                             </Button>
 
                             <div className="flex flex-col items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsSignUp(!isSignUp)}
-                                    className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
-                                >
-                                    {isSignUp ? "Já tem acesso? Faça login" : "Novo por aqui? Solicite uma conta"}
-                                </button>
+                                {isResetting ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsResetting(false)}
+                                        className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
+                                    >
+                                        Lembrei a senha, voltar ao login
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsSignUp(!isSignUp)}
+                                        className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
+                                    >
+                                        {isSignUp ? "Já tem acesso? Faça login" : "Novo por aqui? Solicite uma conta"}
+                                    </button>
+                                )}
 
                                 <button
                                     type="button"
