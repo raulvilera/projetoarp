@@ -244,28 +244,28 @@ const IntelligenceTab = () => {
             description: "Identificação profunda dos fatores geradores de riscos psicossociais (Módulos 5-7).",
             level: "PRO",
             icon: <Target className="h-6 w-6" />,
-            allowed: plan === "intermediario" || plan === "anual",
+            allowed: plan?.startsWith("intermediario") || plan?.startsWith("anual") || plan === "anual",
         },
         {
             title: "Plano de Ação Executivo",
             description: "Cronograma estruturado de intervenção para conformidade NR-01 (Módulo 8).",
             level: "PRO",
             icon: <ClipboardList className="h-6 w-6" />,
-            allowed: plan === "intermediario" || plan === "anual",
+            allowed: plan?.startsWith("intermediario") || plan?.startsWith("anual") || plan === "anual",
         },
         {
             title: "Monitoramento de Desvios",
             description: "Detecção precoce de variações críticas no clima organizacional (Módulo 9).",
             level: "ENTERPRISE",
             icon: <TrendingUp className="h-6 w-6" />,
-            allowed: plan === "anual",
+            allowed: plan?.startsWith("anual") || plan === "anual",
         },
         {
             title: "Expansão & Oportunidades",
             description: "Análise estratégica de melhoria contínua e redução de custos (Módulo 10).",
             level: "ENTERPRISE",
             icon: <Zap className="h-6 w-6" />,
-            allowed: plan === "anual",
+            allowed: plan?.startsWith("anual") || plan === "anual",
         }
     ];
 
@@ -332,10 +332,36 @@ const Dashboard = () => {
                         <PremiumHUD size={120} className="scale-150" animateInternal={true} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Avaliação de Riscos Psicossociais</h1>
-                        <p className="text-muted-foreground">Gestão e Diagnóstico Organizacional</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Portal DRPS Manager</h1>
+                        <p className="text-muted-foreground font-medium">Gestão de Riscos e Coleta de Dados NR-01</p>
                     </div>
                 </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="bg-white border-blue-100 shadow-sm hover:shadow-md transition-all cursor-pointer group" onClick={() => document.querySelector('[value="stats"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}>
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="p-4 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <TrendingUp className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-slate-900">Dashboard de Resultados</h3>
+                                <p className="text-sm text-slate-500">Visualize as médias de risco e diagnósticos em tempo real.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white border-green-100 shadow-sm hover:shadow-md transition-all cursor-pointer group" onClick={() => document.querySelector('[value="companies"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}>
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="p-4 bg-green-50 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                <Share2 className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-slate-900">Links de Coleta (Formulários)</h3>
+                                <p className="text-sm text-slate-500">Acesse e envie os links de pesquisa para seus clientes/funcionários.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <Tabs defaultValue="stats" className="w-full">
                     <TabsList className="bg-white p-1 rounded-xl border mb-6">

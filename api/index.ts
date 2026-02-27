@@ -175,8 +175,10 @@ const handleWebhook = async (req: any, res: any) => {
             if (sub) {
                 const userId = sub.external_reference;
                 const status = sub.status === 'authorized' ? 'active' : 'inactive';
-                const planId = sub.reason?.toLowerCase().includes('intermediário') ? 'intermediario' :
-                    sub.reason?.toLowerCase().includes('anual') ? 'anual' : 'basico';
+                const reason = sub.reason || '';
+                const planId = Object.keys(PLANS).find(key => PLANS[key].title === reason) ||
+                    (reason.toLowerCase().includes('profissional') ? 'intermediario' :
+                        reason.toLowerCase().includes('corporativo') ? 'anual' : 'basico');
 
                 // Atualizar assinatura no Supabase
                 const { error } = await supabase

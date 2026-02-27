@@ -15,6 +15,7 @@ const getPlans = (billingPeriod: "monthly" | "annually") => [
         price: billingPeriod === "monthly" ? "R$ 497" : "R$ 4.970",
         period: billingPeriod === "monthly" ? "/mês" : "/ano",
         priceNum: billingPeriod === "monthly" ? 497.0 : 4970.0,
+        saving: billingPeriod === "annually" ? "Economize R$ 994 (17%)" : null,
         description: "Diagnóstico inicial e mapa de riscos psicossociais.",
         highlight: false,
         icon: <Zap className="h-6 w-6" />,
@@ -34,6 +35,7 @@ const getPlans = (billingPeriod: "monthly" | "annually") => [
         price: billingPeriod === "monthly" ? "R$ 1.297" : "R$ 12.970",
         period: billingPeriod === "monthly" ? "/mês" : "/ano",
         priceNum: billingPeriod === "monthly" ? 1297.0 : 12970.0,
+        saving: billingPeriod === "annually" ? "Economize R$ 2.594 (17%)" : null,
         description: "Gestão completa com governança e planos de ação.",
         highlight: true,
         icon: <Shield className="h-6 w-6" />,
@@ -48,11 +50,12 @@ const getPlans = (billingPeriod: "monthly" | "annually") => [
         ],
     },
     {
-        id: "anual",
+        id: "corporativo",
         name: "Plano Corporativo (Enterprise)",
         price: billingPeriod === "monthly" ? "R$ 1.690" : "R$ 14.900",
         period: billingPeriod === "monthly" ? "/mês" : "/ano",
         priceNum: billingPeriod === "monthly" ? 1690.0 : 14900.0,
+        saving: billingPeriod === "annually" ? "Economize R$ 5.380 (26%)" : null,
         description: "Inteligência preditiva e monitoramento contínuo.",
         highlight: false,
         icon: <Building2 className="h-6 w-6" />,
@@ -113,15 +116,27 @@ const PricingPage = () => {
             const { data: { session } } = await supabase.auth.getSession();
             const email = session?.user?.email;
 
+            // Determinar o ID correto do plano baseado no período de faturamento
+            let planIdToSend = planId;
+            if (billingPeriod === "annually") {
+                if (planId === "corporativo") {
+                    planIdToSend = "anual";
+                } else if (!planId.endsWith("_anual")) {
+                    planIdToSend = `${planId}_anual`;
+                }
+            } else {
+                if (planId === "anual") {
+                    planIdToSend = "corporativo";
+                }
+            }
+
             const response = await fetch("/api/subscription/create-preference", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    planId: billingPeriod === "annually" && !planId.endsWith("_anual") && planId !== "anual"
-                        ? `${planId}_anual`
-                        : planId,
+                    planId: planIdToSend,
                     userId: activeUserId,
-                    email: email // Enviar e-mail para o Mercado Pago
+                    email: email
                 }),
             });
 
@@ -218,10 +233,19 @@ const PricingPage = () => {
                             <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
 
                             {/* Preço */}
-                            <div className="flex items-end gap-1 mb-8">
+                            <div className="flex items-end gap-1 mb-2">
                                 <span className="text-4xl font-extrabold text-white">{plan.price}</span>
                                 <span className="text-slate-400 text-lg pb-1">{plan.period}</span>
                             </div>
+
+                            {plan.saving && (
+                                <div className="text-green-400 text-xs font-bold mb-6 flex items-center gap-1">
+                                    <Star className="h-3 w-3 fill-green-400" />
+                                    {plan.saving}
+                                </div>
+                            )}
+
+                            {!plan.saving && <div className="mb-6 h-4" />}
 
                             <p className="text-slate-500 text-[10px] mt-2 italic">* O plano é selecionado automaticamente com base no seu volume de empresas.</p>
 
