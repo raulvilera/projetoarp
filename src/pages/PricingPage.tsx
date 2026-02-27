@@ -10,41 +10,41 @@ import { supabase } from "@/lib/supabase";
 
 const PLANS = [
     {
-        id: "mensal",
-        name: "Mensal",
-        price: "R$ 350",
+        id: "basico",
+        name: "Plano Básico",
+        price: "R$ 300",
         period: "/mês",
-        priceNum: 35000, // em centavos
-        description: "Ideal para consultorias e empresas que querem começar.",
-        highlight: false,
+        priceNum: 30000,
+        description: "Ideal para consultores com até 20 empresas cadastradas.",
+        highlight: true,
         icon: <Zap className="h-6 w-6" />,
         color: "from-blue-600 to-blue-800",
         features: [
-            "Empresas ilimitadas",
-            "Funcionários ilimitados",
+            "Até 20 empresas",
+            "Cobrança recorrente automática",
             "Dashboard completo",
             "Relatórios por empresa",
             "Acesso ao questionário NR-1",
-            "Suporte por e-mail",
+            "Suporte prioritário",
         ],
     },
     {
-        id: "anual",
-        name: "Anual",
-        price: "R$ 3.000",
-        period: "/ano",
-        priceNum: 300000, // em centavos
-        description: "Economize R$ 1.200 em relação ao mensal. Melhor custo-benefício.",
-        highlight: true,
-        icon: <Crown className="h-6 w-6" />,
+        id: "intermediario",
+        name: "Plano Intermediário",
+        price: "R$ 650",
+        period: "/mês",
+        priceNum: 65000,
+        description: "Para grandes volumes, acima de 20 empresas cadastradas.",
+        highlight: false,
+        icon: <Building2 className="h-6 w-6" />,
         color: "from-violet-600 to-purple-800",
         features: [
-            "Tudo do plano Mensal",
-            "Economia de R$ 1.200/ano",
-            "Prioridade no suporte",
-            "Relatórios avançados",
-            "Acesso antecipado a novidades",
-            "Certificado de avaliação",
+            "Empresas ilimitadas",
+            "Cobrança recorrente automática",
+            "Tudo do plano Básico",
+            "Análise comparativa de dados",
+            "Exportação de dados em massa",
+            "Suporte 24/7",
         ],
     },
 ];
@@ -156,12 +156,7 @@ const PricingPage = () => {
                                 <span className="text-slate-400 text-lg pb-1">{plan.period}</span>
                             </div>
 
-                            {plan.id === "anual" && (
-                                <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2 mb-6 flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-green-400 flex-shrink-0" />
-                                    <span className="text-green-400 text-xs font-semibold">Economize R$ 1.200 vs. mensal</span>
-                                </div>
-                            )}
+                            <p className="text-slate-500 text-[10px] mt-2 italic">* O plano é selecionado automaticamente com base no seu volume de empresas.</p>
 
                             {/* Features */}
                             <ul className="space-y-3 flex-1 mb-8">

@@ -1,5 +1,5 @@
 import express from 'express';
-import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import { MercadoPagoConfig, Preference, Payment, PreApproval } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
 
 const app = express();
@@ -18,7 +18,8 @@ const supabase = createClient(
 
 // ─── Planos disponíveis ───────────────────────────────────────────────────────
 const PLANS: Record<string, { title: string; price: number; months: number }> = {
-    mensal: { title: 'Plano Mensal – ARP', price: 350.0, months: 1 },
+    basico: { title: 'Plano Básico – ARP (Até 20 empresas)', price: 300.0, months: 1 },
+    intermediario: { title: 'Plano Intermediário – ARP (+20 empresas)', price: 650.0, months: 1 },
     anual: { title: 'Plano Anual – ARP', price: 3000.0, months: 12 },
 };
 
@@ -102,8 +103,110 @@ const handleStatus = async (req: any, res: any) => {
 app.get('/api/subscription/status', handleStatus);
 app.get('/subscription/status', handleStatus);
 
+const handleCreatePreference = async (req: any, res: any) => {
+    const { planId, userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId obrigatório.' });
+
+    try {
+        // 1. Contar empresas do usuário para validar o plano
+        const { count, error: countError } = await supabase
+            .from('companies')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+
+        if (countError) throw countError;
+
+        let finalPlanId = planId;
+        let amount = 300.0;
+        let title = PLANS.basico.title;
+
+        // Lógica de precificação automática (se for plano mensal/recorrente)
+        if (planId !== 'anual') {
+            if ((count || 0) > 20) {
+                finalPlanId = 'intermediario';
+                amount = 650.0;
+                title = PLANS.intermediario.title;
+            } else {
+                finalPlanId = 'basico';
+                amount = 300.0;
+                title = PLANS.basico.title;
+            }
+        } else {
+            amount = 3000.0;
+            title = PLANS.anual.title;
+        }
+
+        // 2. Criar Assinatura Recorrente (PreApproval) no Mercado Pago
+        const preApproval = new PreApproval(mp);
+        const result = await preApproval.create({
+            body: {
+                reason: title,
+                external_reference: userId,
+                payer_email: req.body.email || 'test_user@test.com', // E-mail seria bom vir do front ou auth
+                auto_recurring: {
+                    frequency: 1,
+                    frequency_type: 'months',
+                    transaction_amount: amount,
+                    currency_id: 'BRL',
+                },
+                back_url: `${req.headers.origin}/assinatura/sucesso`,
+                status: 'pending',
+            }
+        });
+
+        res.json({ init_point: result.init_point, subscriptionId: result.id });
+    } catch (error: any) {
+        console.error('Erro ao criar assinatura:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+app.post('/api/subscription/create-preference', handleCreatePreference);
+app.post('/subscription/create-preference', handleCreatePreference);
+
+const handleWebhook = async (req: any, res: any) => {
+    const { action, type, data } = req.body;
+    console.log(`Webhook recebido: ${action} - ${type}`, data);
+
+    try {
+        if (type === 'preapproval' || action?.includes('preapproval')) {
+            const preApproval = new PreApproval(mp);
+            const sub = await preApproval.get({ id: data.id });
+
+            if (sub) {
+                const userId = sub.external_reference;
+                const status = sub.status === 'authorized' ? 'active' : 'inactive';
+                const planId = sub.reason?.toLowerCase().includes('intermediário') ? 'intermediario' :
+                    sub.reason?.toLowerCase().includes('anual') ? 'anual' : 'basico';
+
+                // Atualizar assinatura no Supabase
+                const { error } = await supabase
+                    .from('subscriptions_arp')
+                    .upsert({
+                        user_id: userId,
+                        plan_id: planId,
+                        status: status,
+                        mp_preapproval_id: sub.id,
+                        starts_at: sub.date_created,
+                        ends_at: sub.next_payment_date,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
+
+                if (error) console.error('Erro ao atualizar assinatura via webhook:', error);
+            }
+        }
+        res.sendStatus(200);
+    } catch (error: any) {
+        console.error('Erro no processamento do webhook:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+app.post('/api/subscription/webhook', handleWebhook);
+app.post('/subscription/webhook', handleWebhook);
+
 // Outras rotas (simplificadas)
-app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok', v: 5 }));
+app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok', v: 6 }));
 app.get(['/api/companies', '/companies'], (req, res) => res.json([]));
 
 export default app;

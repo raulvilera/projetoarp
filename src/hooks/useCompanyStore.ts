@@ -8,6 +8,7 @@ export interface Company {
     cnpj: string;
     cidade: string;
     uf: string;
+    user_id?: string;
     createdAt: string;
 }
 
@@ -90,6 +91,7 @@ export const useCompanyStore = () => {
                 cnpj: data.cnpj,
                 cidade: data.cidade,
                 uf: data.uf,
+                user_id: data.user_id,
             })
             .select()
             .single();

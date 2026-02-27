@@ -5,7 +5,7 @@ export type SubscriptionStatus = "active" | "inactive" | "loading";
 
 export interface SubscriptionInfo {
     status: SubscriptionStatus;
-    plan: "mensal" | "anual" | null;
+    plan: "basico" | "intermediario" | "anual" | "mensal" | null;
     expiresAt: string | null;
     subscriptionId: string | null;
     hasSession: boolean;

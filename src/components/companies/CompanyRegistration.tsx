@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
+import { supabase } from "@/lib/supabase";
 import { Loader2, CheckCircle, Search, Building2 } from "lucide-react";
 
 interface CompanyRegistrationProps {
@@ -176,7 +177,18 @@ const CompanyRegistration = ({ onCancel, onSave }: CompanyRegistrationProps) => 
 
         setLoading(true);
         const rawCnpj = cnpj.replace(/\D/g, "");
-        const result = await addCompany({ nome, cnpj: rawCnpj, cidade, uf });
+
+        // Obter user_id da sessão
+        const { data: { session } } = await supabase.auth.getSession();
+        const user_id = session?.user?.id;
+
+        const result = await addCompany({
+            nome,
+            cnpj: rawCnpj,
+            cidade,
+            uf,
+            user_id
+        });
         setLoading(false);
 
         if (result) {
