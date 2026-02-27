@@ -18,9 +18,9 @@ const supabase = createClient(
 
 // ─── Planos disponíveis ───────────────────────────────────────────────────────
 const PLANS: Record<string, { title: string; price: number; months: number }> = {
-    basico: { title: 'Plano Básico (Basic Plan) – ARP', price: 300.0, months: 1 },
-    intermediario: { title: 'Plano Profissional (Pro Plan) – ARP', price: 650.0, months: 1 },
-    anual: { title: 'Plano Corporativo (Enterprise Plan) – Anual', price: 3000.0, months: 12 },
+    basico: { title: 'Plano Básico (Basic Plan) – ARP', price: 497.0, months: 1 },
+    intermediario: { title: 'Plano Profissional (Pro Plan) – ARP', price: 1297.0, months: 1 },
+    anual: { title: 'Plano Corporativo (Enterprise Plan) – Anual', price: 14900.0, months: 12 },
 };
 
 // ─── CORS Middleware ─────────────────────────────────────────────────────────
