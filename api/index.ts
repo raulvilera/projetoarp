@@ -181,6 +181,12 @@ const handleWebhook = async (req: any, res: any) => {
                     }, { onConflict: 'user_id' });
 
                 if (error) console.error('Erro ao atualizar assinatura via webhook:', error);
+
+                // Enviar e-mail de boas-vindas se a assinatura estiver ativa
+                if (status === 'active') {
+                    console.log(`[EMAIL] Enviando boas-vindas para: ${sub.payer_email || 'Usuário'}`);
+                    // Nota: Para envio real, integre aqui com Resend, Sendgrid ou similar.
+                }
             }
         }
         res.sendStatus(200);
