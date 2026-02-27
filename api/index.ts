@@ -18,9 +18,12 @@ const supabase = createClient(
 
 // ─── Planos disponíveis ───────────────────────────────────────────────────────
 const PLANS: Record<string, { title: string; price: number; months: number }> = {
-    basico: { title: 'Plano Básico (Basic Plan) – ARP', price: 497.0, months: 1 },
-    intermediario: { title: 'Plano Profissional (Pro Plan) – ARP', price: 1297.0, months: 1 },
-    anual: { title: 'Plano Corporativo (Enterprise Plan) – Anual', price: 14900.0, months: 12 },
+    basico: { title: 'Plano Básico (Monthly) – ARP', price: 497.0, months: 1 },
+    basico_anual: { title: 'Plano Básico (Annual) – ARP', price: 4970.0, months: 12 },
+    intermediario: { title: 'Plano Profissional (Monthly) – ARP', price: 1297.0, months: 1 },
+    intermediario_anual: { title: 'Plano Profissional (Annual) – ARP', price: 12970.0, months: 12 },
+    anual: { title: 'Plano Corporativo (Annual) – ARP', price: 14900.0, months: 12 },
+    corporativo: { title: 'Plano Corporativo (Monthly) – ARP', price: 1690.0, months: 1 }, // Adicionado mensal corporativo
 };
 
 // ─── CORS Middleware ─────────────────────────────────────────────────────────
@@ -116,25 +119,10 @@ const handleCreatePreference = async (req: any, res: any) => {
 
         if (countError) throw countError;
 
-        let finalPlanId = planId;
-        let amount = 300.0;
-        let title = PLANS.basico.title;
-
-        // Lógica de precificação automática (se for plano mensal/recorrente)
-        if (planId !== 'anual') {
-            if ((count || 0) > 20) {
-                finalPlanId = 'intermediario';
-                amount = 1297.0;
-                title = PLANS.intermediario.title;
-            } else {
-                finalPlanId = 'basico';
-                amount = 497.0;
-                title = PLANS.basico.title;
-            }
-        } else {
-            amount = 14900.0;
-            title = PLANS.anual.title;
-        }
+        const plan = PLANS[planId] || PLANS.basico;
+        const amount = plan.price;
+        const title = plan.title;
+        const months = plan.months;
 
         // 2. Criar Assinatura Recorrente (PreApproval) no Mercado Pago
         const preApproval = new PreApproval(mp);
@@ -142,9 +130,9 @@ const handleCreatePreference = async (req: any, res: any) => {
             body: {
                 reason: title,
                 external_reference: userId,
-                payer_email: req.body.email || 'test_user@test.com', // E-mail seria bom vir do front ou auth
+                payer_email: req.body.email || 'test_user@test.com',
                 auto_recurring: {
-                    frequency: 1,
+                    frequency: months,
                     frequency_type: 'months',
                     transaction_amount: amount,
                     currency_id: 'BRL',

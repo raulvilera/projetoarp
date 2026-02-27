@@ -16,6 +16,7 @@ type IdentificationScreenProps = {
   funcao: string;
   setor: string;
   empresaNome: string;
+  isLocked?: boolean;
   onFuncaoChange: (value: string) => void;
   onSetorChange: (value: string) => void;
   onEmpresaNomeChange: (value: string) => void;
@@ -51,6 +52,7 @@ const IdentificationScreen = ({
   funcao,
   setor,
   empresaNome,
+  isLocked = false,
   onFuncaoChange,
   onSetorChange,
   onEmpresaNomeChange,
@@ -122,8 +124,10 @@ const IdentificationScreen = ({
               id="empresa"
               placeholder="Digite o nome da empresa..."
               value={empresaNome}
+              readOnly={isLocked}
               onChange={(e) => onEmpresaNomeChange(e.target.value)}
-              className="rounded-xl h-12 bg-slate-50 border-slate-200 focus-visible:ring-blue-500"
+              className={`rounded-xl h-12 border-slate-200 focus-visible:ring-blue-500 ${isLocked ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-slate-50"
+                }`}
             />
           </div>
 

@@ -41,6 +41,7 @@ const App = () => {
           <Routes>
             {/* Rota pública: questionário (sem necessidade de assinatura) */}
             <Route path="/" element={<Index />} />
+            <Route path="/coleta/:empresaId" element={<Index />} />
 
             {/* Dashboard protegido */}
             <Route path="/dashboard" element={

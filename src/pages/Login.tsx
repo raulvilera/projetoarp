@@ -51,7 +51,15 @@ const Login = () => {
                 if (error) throw error;
 
                 if (data.user) {
-                    // Verificar assinatura imediatamente após o login
+                    const pendingPlan = localStorage.getItem("pending_plan_id");
+
+                    if (pendingPlan) {
+                        toast({ title: "Caminho livre!", description: "Continuando com sua assinatura..." });
+                        navigate("/planos?intent=checkout");
+                        return;
+                    }
+
+                    // Verificar assinatura baseada no plano atual
                     const { data: sub } = await supabase
                         .from("subscriptions_arp")
                         .select("status")

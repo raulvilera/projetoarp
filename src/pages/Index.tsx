@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { sections } from "@/data/questionnaire";
 import WelcomeScreen from "@/components/questionnaire/WelcomeScreen";
@@ -18,8 +19,29 @@ const Index = () => {
   const [funcao, setFuncao] = useState("");
   const [setor, setSetor] = useState("");
   const [empresaId, setEmpresaId] = useState<string | undefined>();
+  const [empresaNome, setEmpresaNome] = useState("");
+  const { empresaId: urlEmpresaId } = useParams<{ empresaId: string }>();
   const { toast } = useToast();
   const { addResponse } = useCompanyStore();
+
+  useEffect(() => {
+    if (urlEmpresaId) {
+      setEmpresaId(urlEmpresaId);
+      // Buscar nome da empresa
+      const fetchCompany = async () => {
+        const { data, error } = await supabase
+          .from("companies")
+          .select("nome")
+          .eq("id", urlEmpresaId)
+          .maybeSingle();
+
+        if (data) {
+          setEmpresaNome(data.nome);
+        }
+      };
+      fetchCompany();
+    }
+  }, [urlEmpresaId]);
 
   const handleAnswer = useCallback((questionId: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -106,8 +128,11 @@ const Index = () => {
           key="identification"
           funcao={funcao}
           setor={setor}
+          empresaNome={empresaNome}
+          isLocked={!!urlEmpresaId}
           onFuncaoChange={setFuncao}
           onSetorChange={setSetor}
+          onEmpresaNomeChange={setEmpresaNome}
           onNext={() => setPhase("questionnaire")}
         />
       )}

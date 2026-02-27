@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
     CheckCircle, Shield, BarChart3, Building2, Zap,
@@ -8,13 +8,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
-const PLANS = [
+const getPlans = (billingPeriod: "monthly" | "annually") => [
     {
         id: "basico",
         name: "Plano Básico (Basic)",
-        price: "R$ 497",
-        period: "/mês",
-        priceNum: 497.0,
+        price: billingPeriod === "monthly" ? "R$ 497" : "R$ 4.970",
+        period: billingPeriod === "monthly" ? "/mês" : "/ano",
+        priceNum: billingPeriod === "monthly" ? 497.0 : 4970.0,
         description: "Diagnóstico inicial e mapa de riscos psicossociais.",
         highlight: false,
         icon: <Zap className="h-6 w-6" />,
@@ -31,9 +31,9 @@ const PLANS = [
     {
         id: "intermediario",
         name: "Plano Profissional (Pro)",
-        price: "R$ 1.297",
-        period: "/mês",
-        priceNum: 1297.0,
+        price: billingPeriod === "monthly" ? "R$ 1.297" : "R$ 12.970",
+        period: billingPeriod === "monthly" ? "/mês" : "/ano",
+        priceNum: billingPeriod === "monthly" ? 1297.0 : 12970.0,
         description: "Gestão completa com governança e planos de ação.",
         highlight: true,
         icon: <Shield className="h-6 w-6" />,
@@ -50,9 +50,9 @@ const PLANS = [
     {
         id: "anual",
         name: "Plano Corporativo (Enterprise)",
-        price: "R$ 14.900",
-        period: "/ano",
-        priceNum: 14900.0,
+        price: billingPeriod === "monthly" ? "R$ 1.690" : "R$ 14.900",
+        period: billingPeriod === "monthly" ? "/mês" : "/ano",
+        priceNum: billingPeriod === "monthly" ? 1690.0 : 14900.0,
         description: "Inteligência preditiva e monitoramento contínuo.",
         highlight: false,
         icon: <Building2 className="h-6 w-6" />,
@@ -71,29 +71,54 @@ const PLANS = [
 const PricingPage = () => {
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annually">("monthly");
     const { toast } = useToast();
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data }) => {
             if (data.session?.user?.id) {
                 setUserId(data.session.user.id);
-            }
-            // Não redirecionamos mais automaticamente; permitimos ver os planos.
-        });
-    }, []);
 
-    const handleSubscribe = async (planId: string) => {
-        if (!userId) {
+                // Verificar se há uma intenção de checkout após o login
+                const searchParams = new URLSearchParams(location.search);
+                if (searchParams.get("intent") === "checkout") {
+                    const pendingId = localStorage.getItem("pending_plan_id");
+                    if (pendingId) {
+                        localStorage.removeItem("pending_plan_id");
+                        handleSubscribe(pendingId, data.session.user.id);
+                    }
+                }
+            }
+        });
+    }, [location.search]);
+
+    const handleSubscribe = async (planId: string, currentUserId?: string) => {
+        const activeUserId = currentUserId || userId;
+
+        if (!activeUserId) {
+            // Salvar intenção para depois do login
+            localStorage.setItem("pending_plan_id", planId);
+            toast({
+                title: "Quase lá!",
+                description: "Faça seu login para concluir a assinatura.",
+            });
             navigate("/login");
             return;
         }
+
         setLoadingPlan(planId);
         try {
             const response = await fetch("/api/subscription/create-preference", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planId, userId }),
+                body: JSON.stringify({
+                    planId: billingPeriod === "annually" && !planId.endsWith("_anual") && planId !== "anual"
+                        ? `${planId}_anual`
+                        : planId,
+                    userId: activeUserId
+                }),
             });
 
             if (!response.ok) throw new Error("Erro ao criar preferência de pagamento");
@@ -138,11 +163,31 @@ const PricingPage = () => {
                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                     Mais de 50 empresas já avaliadas na plataforma
                 </p>
+
+                {/* Período de Cobrança Toggle */}
+                <div className="flex items-center justify-center gap-4 mt-10">
+                    <span className={`text-sm font-medium ${billingPeriod === "monthly" ? "text-white" : "text-slate-500"}`}>Mensal</span>
+                    <button
+                        onClick={() => setBillingPeriod(billingPeriod === "monthly" ? "annually" : "monthly")}
+                        className="w-14 h-7 bg-slate-800 rounded-full relative p-1 transition-colors hover:bg-slate-700"
+                    >
+                        <motion.div
+                            animate={{ x: billingPeriod === "monthly" ? 0 : 28 }}
+                            className="w-5 h-5 bg-blue-500 rounded-full shadow-lg"
+                        />
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${billingPeriod === "annually" ? "text-white" : "text-slate-500"}`}>Anual</span>
+                        <span className="bg-green-500/10 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-500/20">
+                            -17% OFF (2 meses grátis)
+                        </span>
+                    </div>
+                </div>
             </motion.div>
 
             {/* Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-                {PLANS.map((plan, i) => (
+                {getPlans(billingPeriod).map((plan, i) => (
                     <motion.div
                         key={plan.id}
                         initial={{ opacity: 0, y: 30 }}

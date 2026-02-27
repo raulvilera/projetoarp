@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCompanyStore } from "@/hooks/useCompanyStore";
 import { sections } from "@/data/questionnaire";
 import {
-    ArrowLeft, Building2, MapPin, Hash, Users, BarChart2, ClipboardList,
+    ArrowLeft, Building2, MapPin, Hash, Users, BarChart2, ClipboardList, Share2, Link
 } from "lucide-react";
 
 const COLORS = ["#f87171", "#fbbf24", "#60a5fa", "#34d399", "#a78bfa", "#f59e0b", "#f43f5e", "#6366f1", "#14b8a6"];
@@ -54,6 +54,15 @@ const CompanyFolder = () => {
         return Object.entries(map).sort((a, b) => b[1] - a[1]);
     }, [companyResponses]);
 
+    const handleCopyLink = () => {
+        const link = `${window.location.origin}/coleta/${id}`;
+        navigator.clipboard.writeText(link);
+        toast({
+            title: "Link Copiado!",
+            description: "O link de coleta para funcionários foi copiado para a área de transferência.",
+        });
+    };
+
     if (!company) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -96,9 +105,20 @@ const CompanyFolder = () => {
                             </div>
                         </div>
                     </div>
-                    <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-                        Ativa
-                    </Badge>
+                    <div className="flex flex-col gap-2">
+                        <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 w-fit ml-auto">
+                            Ativa
+                        </Badge>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyLink}
+                            className="bg-white border-blue-200 text-blue-600 hover:bg-blue-50 gap-2 rounded-xl"
+                        >
+                            <Link className="h-4 w-4" />
+                            Copiar link para funcionários
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Stats summary cards */}
