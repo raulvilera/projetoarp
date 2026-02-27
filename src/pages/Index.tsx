@@ -14,6 +14,7 @@ const Index = () => {
   const [phase, setPhase] = useState<Phase>("welcome");
   const [currentSection, setCurrentSection] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [sectionComments, setSectionComments] = useState<Record<string, string>>({});
   const [funcao, setFuncao] = useState("");
   const [setor, setSetor] = useState("");
   const [empresaId, setEmpresaId] = useState<string | undefined>();
@@ -22,6 +23,10 @@ const Index = () => {
 
   const handleAnswer = useCallback((questionId: string, value: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }, []);
+
+  const handleComment = useCallback((sectionId: number, comment: string) => {
+    setSectionComments((prev) => ({ ...prev, [sectionId.toString()]: comment }));
   }, []);
 
   const handleStart = (selectedEmpresaId?: string) => {
@@ -39,7 +44,12 @@ const Index = () => {
 
         // Save locally/supabase so company folder can display it
         if (empresaId) {
-          await addResponse({ empresaId, funcao, setor, answers });
+          await addResponse({
+            empresaId,
+            funcao,
+            setor,
+            answers: { ...answers, ...sectionComments }
+          });
         }
 
         try {
@@ -47,7 +57,7 @@ const Index = () => {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ funcao, setor, answers, empresaId }),
+            body: JSON.stringify({ funcao, setor, answers, sectionComments, empresaId }),
           });
         } catch (scriptError) {
           // Mode 'no-cors' might still throw or we might want to log it
@@ -108,6 +118,8 @@ const Index = () => {
           totalSections={sections.length}
           answers={answers}
           onAnswer={handleAnswer}
+          onComment={handleComment}
+          comment={sectionComments[sections[currentSection].id.toString()] || ""}
           onNext={handleNext}
           onPrev={handlePrev}
           isFirst={currentSection === 0}
