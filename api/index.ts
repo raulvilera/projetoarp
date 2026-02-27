@@ -124,15 +124,15 @@ const handleCreatePreference = async (req: any, res: any) => {
         if (planId !== 'anual') {
             if ((count || 0) > 20) {
                 finalPlanId = 'intermediario';
-                amount = 650.0;
+                amount = 1297.0;
                 title = PLANS.intermediario.title;
             } else {
                 finalPlanId = 'basico';
-                amount = 300.0;
+                amount = 497.0;
                 title = PLANS.basico.title;
             }
         } else {
-            amount = 3000.0;
+            amount = 14900.0;
             title = PLANS.anual.title;
         }
 
