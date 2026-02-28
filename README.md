@@ -1,73 +1,41 @@
-# Welcome to your Lovable project
+# DRPS Manager
 
-## Project info
+Sistema de gestão de conformidade de Normas Regulamentadoras (NRs) para segurança do trabalho.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Estrutura do Projeto
 
-## How can I edit this code?
+A versão atual do projeto foi limpa e organizada:
 
-There are several ways of editing your application.
+- `src/`: Código fonte da aplicação (React + TypeScript).
+- `supabase/`: Scripts SQL e configurações do banco de dados (esquemas, migrações, RLS).
+- `docs/`: Documentação estratégica, relatórios de análise e habilidades do sistema.
+- `public/`: Ativos estáticos.
+- `api/`: Endpoints de backend em Node.js (Vercel Functions).
 
-**Use Lovable**
+## Tecnologias Utilizadas
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Frontend**: React, Vite, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion.
+- **Backend / Database**: Supabase (PostgreSQL), Vercel Functions.
+- **Pagamentos**: Mercado Pago SDK.
+- **Estilização**: CSS moderno com foco em estética premium e HUDs industriais.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Como Executar Localmente
 
-**Use your preferred IDE**
+1. Clone o repositório.
+2. Instale as dependências:
+   ```sh
+   npm install
+   ```
+3. Configure as variáveis de ambiente no arquivo `.env` (use `.env.example` como base).
+4. Inicie o servidor de desenvolvimento:
+   ```sh
+   npm run dev
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Deploy
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+O projeto está configurado para deploy automático na **Vercel**.
+As variáveis de ambiente do Supabase e Mercado Pago devem estar configuradas no painel da Vercel.
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+**DRPS Manager** - Avaliação dos Riscos Psicossociais
